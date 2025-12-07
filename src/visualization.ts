@@ -80,12 +80,13 @@ export class GDVisualization {
       right: 20px;
       top: 20px;
       width: 360px;
-      max-height: calc(100vh - 40px);
+      max-height: calc(100vh - 100px);
       overflow-y: auto;
       background: white;
       border: 2px solid #333;
       border-radius: 8px;
       padding: 20px;
+      padding-bottom: 80px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       z-index: 1000;
     `;
@@ -177,17 +178,22 @@ export class GDVisualization {
   }
   
   private updateDetailsPanel(level: LevelData): void {
+    // Format difficulty value - show decimals if needed
+    const difficultyStr = level.difficulty % 1 === 0 
+      ? level.difficulty.toLocaleString() 
+      : level.difficulty.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 10 });
+    
     this.detailsPanel.innerHTML = `
       <h2 style="margin-top: 0; margin-bottom: 10px;">${level.name}</h2>
       ${level.author ? `<p style="color: #666; margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
       <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
-        Difficulty: ${level.difficulty.toLocaleString()}
+        Difficulty: ${difficultyStr}
       </p>
       <div style="margin-bottom: 15px;">
         ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: #2196F3; text-decoration: none;">📺 YouTube</a>` : ''}
         ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: #2196F3; text-decoration: none;">🎮 GDBrowser</a>` : ''}
       </div>
-      ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;">${level.commentary}</div>` : ''}
+      ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;" class="commentary-content">${level.commentary}</div>` : ''}
     `;
   }
   
@@ -201,8 +207,9 @@ export class GDVisualization {
     // Update x-scale to only show visible levels
     this.xScale.domain(visibleData.map(d => d.name));
     
-    // Update x-axis
+    // Update x-axis (no tick marks)
     const xAxis = d3.axisBottom(this.xScale)
+      .tickSize(0)
       .tickFormat(d => {
         const level = visibleData.find(l => l.name === d);
         return level ? level.name : d;
@@ -257,6 +264,56 @@ export class GDVisualization {
       .attr('y', this.height)
       .remove();
     
+    // Add invisible clickable rectangles that extend to the top
+    const clickAreas = this.chartGroup.selectAll<SVGRectElement, LevelData>('.click-area')
+      .data(visibleData, d => d.name);
+    
+    clickAreas.exit().remove();
+    
+    const clickAreasEnter = clickAreas.enter()
+      .append('rect')
+      .attr('class', 'click-area')
+      .attr('x', d => this.xScale(d.name) || 0)
+      .attr('width', this.xScale.bandwidth())
+      .attr('y', 0)
+      .attr('height', this.height)
+      .style('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('click', (event, d) => {
+        this.selectedLevelIndex = this.data.indexOf(d);
+        this.updateDetailsPanel(d);
+      })
+      .on('mouseover', (event, d) => {
+        // Highlight x-axis label
+        const levelName = d.name;
+        this.chartGroup.selectAll('.x-axis text')
+          .each(function() {
+            if (d3.select(this).text() === levelName) {
+              d3.select(this)
+                .style('font-weight', 'bold')
+                .style('fill', '#2196F3');
+            }
+          });
+      })
+      .on('mouseout', (event, d) => {
+        // Unhighlight x-axis label
+        const levelName = d.name;
+        this.chartGroup.selectAll('.x-axis text')
+          .each(function() {
+            if (d3.select(this).text() === levelName) {
+              d3.select(this)
+                .style('font-weight', 'normal')
+                .style('fill', '#333');
+            }
+          });
+      });
+    
+    clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>)
+      .transition()
+      .duration(500)
+      .attr('x', d => this.xScale(d.name) || 0)
+      .attr('width', this.xScale.bandwidth());
+    
     // Add new bars
     const barsEnter = bars.enter()
       .append('rect')
@@ -266,17 +323,7 @@ export class GDVisualization {
       .attr('y', this.height)
       .attr('height', 0)
       .style('fill', '#2196F3')
-      .style('cursor', 'pointer')
-      .on('click', (event, d) => {
-        this.selectedLevelIndex = this.data.indexOf(d);
-        this.updateDetailsPanel(d);
-      })
-      .on('mouseover', function() {
-        d3.select(this).style('fill', '#1976D2');
-      })
-      .on('mouseout', function() {
-        d3.select(this).style('fill', '#2196F3');
-      });
+      .style('pointer-events', 'none'); // Let click areas handle interactions
     
     // Update existing and new bars
     barsEnter.merge(bars as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>)

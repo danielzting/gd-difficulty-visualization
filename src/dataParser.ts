@@ -49,13 +49,13 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
       currentElement = currentElement.nextSibling;
     }
     
-    // Find difficulty value
+    // Find difficulty value (supports decimals)
     let difficulty: number | null = null;
     for (const element of allContent) {
       const text = element.textContent || '';
-      const difficultyMatch = text.match(/Difficulty\s+value:\s*([\d,]+)/i);
+      const difficultyMatch = text.match(/Difficulty\s+value:\s*([\d,.]+)/i);
       if (difficultyMatch) {
-        difficulty = parseInt(difficultyMatch[1].replace(/,/g, ''), 10);
+        difficulty = parseFloat(difficultyMatch[1].replace(/,/g, ''));
         break;
       }
     }
@@ -119,22 +119,31 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
       }
     }
     
-    // Collect commentary from commentaryStartIndex onwards
-    const commentaryParts: string[] = [];
+    // Collect commentary from commentaryStartIndex onwards (preserve HTML)
+    const commentaryElements: Element[] = [];
     for (let j = commentaryStartIndex; j < allContent.length; j++) {
       const element = allContent[j];
       const text = element.textContent?.trim();
       if (text && !text.match(/Difficulty\s+value:/i)) {
-        // Remove link text from commentary
+        // Clone element and remove YouTube/GDBrowser links (keep other links)
         const clone = element.cloneNode(true) as Element;
         const links = clone.querySelectorAll('a');
-        links.forEach(link => link.remove());
-        const cleanText = clone.textContent?.trim();
-        if (cleanText) {
-          commentaryParts.push(cleanText);
+        links.forEach(link => {
+          const href = link.getAttribute('href') || '';
+          if (href.includes('youtube.com') || href.includes('youtu.be') || 
+              href.includes('gdbrowser.com')) {
+            link.remove();
+          }
+        });
+        // Only add if there's still content after removing those links
+        if (clone.textContent?.trim() || clone.querySelector('img, blockquote, ul, ol')) {
+          commentaryElements.push(clone);
         }
       }
     }
+    
+    // Convert commentary elements to HTML string
+    const commentaryHTML = commentaryElements.map(el => el.outerHTML).join('');
     
     levels.push({
       name,
@@ -142,7 +151,7 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
       difficulty,
       youtubeUrl,
       gdBrowserUrl,
-      commentary: commentaryParts.join(' ').trim()
+      commentary: commentaryHTML
     });
   }
   

@@ -71,6 +71,83 @@ svg {
   text-decoration: underline;
 }
 
+/* Commentary content styling */
+.commentary-content {
+  color: #333;
+}
+
+.commentary-content p {
+  margin-bottom: 1em;
+}
+
+.commentary-content p:last-child {
+  margin-bottom: 0;
+}
+
+.commentary-content ul,
+.commentary-content ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.commentary-content li {
+  margin-bottom: 0.5em;
+}
+
+.commentary-content blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid #2196F3;
+  background-color: #f5f5f5;
+  font-style: italic;
+}
+
+.commentary-content h1,
+.commentary-content h2,
+.commentary-content h3,
+.commentary-content h4,
+.commentary-content h5,
+.commentary-content h6 {
+  margin: 1em 0 0.5em 0;
+  font-weight: bold;
+}
+
+.commentary-content h1:first-child,
+.commentary-content h2:first-child,
+.commentary-content h3:first-child,
+.commentary-content h4:first-child,
+.commentary-content h5:first-child,
+.commentary-content h6:first-child {
+  margin-top: 0;
+}
+
+.commentary-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0;
+}
+
+.commentary-content code {
+  background-color: #f5f5f5;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.commentary-content pre {
+  background-color: #f5f5f5;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.commentary-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
 /* Navigation buttons */
 .nav-button {
   transition: all 0.2s ease;
