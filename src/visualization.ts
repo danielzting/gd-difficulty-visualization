@@ -21,6 +21,7 @@ export class GDVisualization {
   private detailsPanel: HTMLElement;
   private forwardButton: HTMLElement;
   private backButton: HTMLElement;
+  private isResizing: boolean = false;
 
   constructor(config: VisualizationConfig) {
     this.data = config.data;
@@ -60,6 +61,7 @@ export class GDVisualization {
     this.update();
     
     // Handle window resize
+    let resizeTimeout: number | null = null;
     window.addEventListener('resize', () => {
       this.width = window.innerWidth - this.margin.left - this.margin.right;
       this.height = window.innerHeight - this.margin.top - this.margin.bottom;
@@ -68,7 +70,20 @@ export class GDVisualization {
         .attr('height', this.height + this.margin.top + this.margin.bottom);
       this.xScale.range([0, this.width]);
       this.yScale.range([this.height, 0]);
+      
+      // Set resizing flag and update immediately (no transitions)
+      this.isResizing = true;
       this.update();
+      
+      // Clear any existing timeout
+      if (resizeTimeout !== null) {
+        clearTimeout(resizeTimeout);
+      }
+      
+      // After resize stops, allow transitions again
+      resizeTimeout = window.setTimeout(() => {
+        this.isResizing = false;
+      }, 150);
     });
   }
   
@@ -227,14 +242,17 @@ export class GDVisualization {
     
     // Update transform to position x-axis at bottom (important for vertical resizing)
     xAxisGroupMerged
-      .transition()
-      .duration(500)
       .attr('transform', `translate(0,${this.height})`);
     
-    xAxisGroupMerged
-      .transition()
-      .duration(500)
-      .call(xAxis);
+    // Update the axis (with or without transition based on resize state)
+    if (this.isResizing) {
+      xAxisGroupMerged.call(xAxis);
+    } else {
+      xAxisGroupMerged
+        .transition()
+        .duration(500)
+        .call(xAxis);
+    }
     
     // Apply rotation and add hover handlers to all text elements (both new and existing)
     xAxisGroupMerged.selectAll('text')
@@ -289,22 +307,36 @@ export class GDVisualization {
       .append('g')
       .attr('class', 'y-axis');
     
-    yAxisGroupEnter.merge(yAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>)
-      .transition()
-      .duration(500)
-      .call(yAxis);
+    const yAxisGroupMerged = yAxisGroupEnter.merge(yAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
+    
+    if (this.isResizing) {
+      yAxisGroupMerged.call(yAxis);
+    } else {
+      yAxisGroupMerged
+        .transition()
+        .duration(500)
+        .call(yAxis);
+    }
     
     // Update bars
     const bars = this.chartGroup.selectAll<SVGRectElement, LevelData>('.bar')
       .data(visibleData, d => d.name);
     
     // Remove bars that are no longer visible
-    bars.exit()
-      .transition()
-      .duration(500)
-      .attr('height', 0)
-      .attr('y', this.height)
-      .remove();
+    const barsExit = bars.exit();
+    if (this.isResizing) {
+      barsExit
+        .attr('height', 0)
+        .attr('y', this.height)
+        .remove();
+    } else {
+      barsExit
+        .transition()
+        .duration(500)
+        .attr('height', 0)
+        .attr('y', this.height)
+        .remove();
+    }
     
     // Add invisible clickable rectangles that extend to the top
     const clickAreas = this.chartGroup.selectAll<SVGRectElement, LevelData>('.click-area')
@@ -356,11 +388,19 @@ export class GDVisualization {
           .style('fill', 'transparent');
       });
     
-    clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>)
-      .transition()
-      .duration(500)
-      .attr('x', d => this.xScale(d.name) || 0)
-      .attr('width', this.xScale.bandwidth());
+    const clickAreasMerged = clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
+    
+    if (this.isResizing) {
+      clickAreasMerged
+        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('width', this.xScale.bandwidth());
+    } else {
+      clickAreasMerged
+        .transition()
+        .duration(500)
+        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('width', this.xScale.bandwidth());
+    }
     
     // Add new bars
     const barsEnter = bars.enter()
@@ -374,13 +414,23 @@ export class GDVisualization {
       .style('pointer-events', 'none'); // Let click areas handle interactions
     
     // Update existing and new bars
-    barsEnter.merge(bars as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>)
-      .transition()
-      .duration(500)
-      .attr('x', d => this.xScale(d.name) || 0)
-      .attr('width', this.xScale.bandwidth())
-      .attr('y', d => this.yScale(d.difficulty))
-      .attr('height', d => this.height - this.yScale(d.difficulty));
+    const barsMerged = barsEnter.merge(bars as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
+    
+    if (this.isResizing) {
+      barsMerged
+        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('width', this.xScale.bandwidth())
+        .attr('y', d => this.yScale(d.difficulty))
+        .attr('height', d => this.height - this.yScale(d.difficulty));
+    } else {
+      barsMerged
+        .transition()
+        .duration(500)
+        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('width', this.xScale.bandwidth())
+        .attr('y', d => this.yScale(d.difficulty))
+        .attr('height', d => this.height - this.yScale(d.difficulty));
+    }
     
     // Update details panel with selected level
     if (this.selectedLevelIndex < this.data.length) {
