@@ -16,6 +16,7 @@ export class GDVisualization {
   private visibleLevels: number = 1;
   private selectedLevelIndex: number = 0;
   private margin = { top: 20, right: 400, bottom: 100, left: 60 };
+  private isMobile: boolean = false;
   private width: number;
   private height: number;
   private detailsPanel: HTMLElement;
@@ -27,9 +28,17 @@ export class GDVisualization {
     this.data = config.data;
     this.container = config.container;
     
-    // Calculate dimensions
-    this.width = window.innerWidth - this.margin.left - this.margin.right;
-    this.height = window.innerHeight - this.margin.top - this.margin.bottom;
+    // Check if mobile
+    this.updateMobileState();
+    
+    // Create details panel first (needed for dimension calculation on mobile)
+    this.createDetailsPanel();
+    
+    // Calculate dimensions (after panel is created so we can measure it if needed)
+    this.updateDimensions();
+    
+    // Update container position for mobile layout
+    this.updateContainerPosition();
     
     // Create SVG
     this.svg = d3.select(this.container)
@@ -51,9 +60,6 @@ export class GDVisualization {
       .domain([0, maxDifficulty])
       .range([this.height, 0]);
     
-    // Create details panel
-    this.createDetailsPanel();
-    
     // Create navigation buttons
     this.createNavigationButtons();
     
@@ -63,8 +69,10 @@ export class GDVisualization {
     // Handle window resize
     let resizeTimeout: number | null = null;
     window.addEventListener('resize', () => {
-      this.width = window.innerWidth - this.margin.left - this.margin.right;
-      this.height = window.innerHeight - this.margin.top - this.margin.bottom;
+      this.updateMobileState();
+      this.updateDimensions();
+      this.updateDetailsPanelPosition();
+      this.updateContainerPosition();
       this.svg
         .attr('width', this.width + this.margin.left + this.margin.right)
         .attr('height', this.height + this.margin.top + this.margin.bottom);
@@ -87,24 +95,100 @@ export class GDVisualization {
     });
   }
   
+  private updateMobileState(): void {
+    this.isMobile = window.innerWidth <= 768;
+  }
+  
+  private updateDimensions(): void {
+    if (this.isMobile) {
+      // On mobile: full width, height accounts for commentary panel at top (max 40vh)
+      const commentaryMaxHeight = window.innerHeight * 0.4; // 40vh
+      const availableHeight = window.innerHeight - commentaryMaxHeight;
+      
+      // Adjust margins for mobile
+      this.margin.right = 20;
+      this.margin.left = 20;
+      this.margin.bottom = 80;
+      this.margin.top = 20;
+      
+      this.width = window.innerWidth - this.margin.left - this.margin.right;
+      this.height = Math.max(200, availableHeight - this.margin.top - this.margin.bottom);
+    } else {
+      // Desktop: reserve space on right for commentary
+      this.margin.right = 400;
+      this.margin.left = 60;
+      this.margin.bottom = 100;
+      this.margin.top = 20;
+      
+      this.width = window.innerWidth - this.margin.left - this.margin.right;
+      this.height = window.innerHeight - this.margin.top - this.margin.bottom;
+    }
+  }
+  
+  private updateDetailsPanelPosition(): void {
+    if (this.isMobile) {
+      // Mobile: position at top, full width
+      this.detailsPanel.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100vw;
+        max-height: 40vh;
+        overflow-y: auto;
+        background: white;
+        border: none;
+        border-bottom: 2px solid #333;
+        border-radius: 0;
+        padding: 20px;
+        padding-bottom: 80px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+      `;
+    } else {
+      // Desktop: position on right
+      this.detailsPanel.style.cssText = `
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        width: 360px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        background: white;
+        border: 2px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        padding-bottom: 80px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+      `;
+    }
+  }
+  
+  private updateContainerPosition(): void {
+    if (this.isMobile) {
+      // On mobile, position container below commentary (40vh)
+      this.container.style.cssText = `
+        position: fixed;
+        top: 40vh;
+        left: 0;
+        width: 100vw;
+        height: calc(100vh - 40vh);
+      `;
+    } else {
+      // Desktop: normal positioning
+      this.container.style.cssText = `
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      `;
+    }
+  }
+  
   private createDetailsPanel(): void {
     this.detailsPanel = document.createElement('div');
     this.detailsPanel.className = 'details-panel';
-    this.detailsPanel.style.cssText = `
-      position: fixed;
-      right: 20px;
-      top: 20px;
-      width: 360px;
-      max-height: calc(100vh - 100px);
-      overflow-y: auto;
-      background: white;
-      border: 2px solid #333;
-      border-radius: 8px;
-      padding: 20px;
-      padding-bottom: 80px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      z-index: 1000;
-    `;
+    this.updateDetailsPanelPosition();
     document.body.appendChild(this.detailsPanel);
   }
   

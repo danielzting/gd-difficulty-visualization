@@ -4,7 +4,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -18,7 +19,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
 }
 
 #app {
@@ -163,7 +163,7 @@ svg {
 
 .nav-button:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .nav-button:active:not(:disabled) {
@@ -178,14 +178,13 @@ svg {
     left: 20px !important;
     max-height: 40vh !important;
   }
-  
+
   .nav-button {
     padding: 8px 16px !important;
     font-size: 14px !important;
   }
-  
+
   .x-axis text {
     font-size: 10px;
   }
 }
-
