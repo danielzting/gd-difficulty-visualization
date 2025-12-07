@@ -225,17 +225,59 @@ export class GDVisualization {
     
     const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
     
+    // Update transform to position x-axis at bottom (important for vertical resizing)
+    xAxisGroupMerged
+      .transition()
+      .duration(500)
+      .attr('transform', `translate(0,${this.height})`);
+    
     xAxisGroupMerged
       .transition()
       .duration(500)
       .call(xAxis);
     
-    // Apply rotation to all text elements (both new and existing)
+    // Apply rotation and add hover handlers to all text elements (both new and existing)
     xAxisGroupMerged.selectAll('text')
       .style('text-anchor', 'end')
       .attr('dx', '-.8em')
       .attr('dy', '.15em')
-      .attr('transform', 'rotate(-45)');
+      .attr('transform', 'rotate(-45)')
+      .style('cursor', 'pointer')
+      .on('click', (event, d) => {
+        const level = visibleData.find(l => l.name === d);
+        if (level) {
+          this.selectedLevelIndex = this.data.indexOf(level);
+          this.updateDetailsPanel(level);
+        }
+      })
+      .on('mouseover', (event, d) => {
+        const level = visibleData.find(l => l.name === d);
+        if (level) {
+          // Highlight this label
+          d3.select(event.currentTarget as SVGTextElement)
+            .style('font-weight', 'bold')
+            .style('fill', '#2196F3');
+          // Also highlight the corresponding click area
+          const levelName = level.name;
+          this.chartGroup.selectAll('.click-area')
+            .filter((clickData: LevelData) => clickData.name === levelName)
+            .style('fill', 'rgba(33, 150, 243, 0.1)');
+        }
+      })
+      .on('mouseout', (event, d) => {
+        const level = visibleData.find(l => l.name === d);
+        if (level) {
+          // Unhighlight this label
+          d3.select(event.currentTarget as SVGTextElement)
+            .style('font-weight', 'normal')
+            .style('fill', '#333');
+          // Also unhighlight the corresponding click area
+          const levelName = level.name;
+          this.chartGroup.selectAll('.click-area')
+            .filter((clickData: LevelData) => clickData.name === levelName)
+            .style('fill', 'transparent');
+        }
+      });
     
     // Update y-axis (no label)
     const yAxis = d3.axisLeft(this.yScale);
@@ -294,6 +336,9 @@ export class GDVisualization {
                 .style('fill', '#2196F3');
             }
           });
+        // Highlight click area
+        d3.select(event.currentTarget as SVGRectElement)
+          .style('fill', 'rgba(33, 150, 243, 0.1)');
       })
       .on('mouseout', (event, d) => {
         // Unhighlight x-axis label
@@ -306,6 +351,9 @@ export class GDVisualization {
                 .style('fill', '#333');
             }
           });
+        // Unhighlight click area
+        d3.select(event.currentTarget as SVGRectElement)
+          .style('fill', 'transparent');
       });
     
     clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>)
