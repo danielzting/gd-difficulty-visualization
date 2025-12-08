@@ -73,6 +73,7 @@ export class GDVisualization {
       this.updateDimensions();
       this.updateDetailsPanelPosition();
       this.updateContainerPosition();
+      this.updateNavigationButtonsPosition();
       this.svg
         .attr('width', this.width + this.margin.left + this.margin.right)
         .attr('height', this.height + this.margin.top + this.margin.bottom);
@@ -101,9 +102,10 @@ export class GDVisualization {
   
   private updateDimensions(): void {
     if (this.isMobile) {
-      // On mobile: full width, height accounts for commentary panel at top (max 40vh)
-      const commentaryMaxHeight = window.innerHeight * 0.4; // 40vh
-      const availableHeight = window.innerHeight - commentaryMaxHeight;
+      // On mobile: full width, height accounts for commentary panel at bottom (50vh) and buttons
+      const commentaryHeight = window.innerHeight * 0.5; // 50vh
+      const buttonHeight = 60; // Space for buttons
+      const availableHeight = window.innerHeight - commentaryHeight - buttonHeight;
       
       // Adjust margins for mobile
       this.margin.right = 20;
@@ -127,38 +129,36 @@ export class GDVisualization {
   
   private updateDetailsPanelPosition(): void {
     if (this.isMobile) {
-      // Mobile: position at top, full width
+      // Mobile: position at bottom, full width, 50vh height, with space below for buttons
       this.detailsPanel.style.cssText = `
         position: fixed;
-        top: 0;
+        bottom: 70px;
         left: 0;
         right: 0;
         width: 100vw;
-        max-height: 40vh;
+        height: 50vh;
         overflow-y: auto;
         background: white;
         border: none;
-        border-bottom: 2px solid #333;
+        border-top: 2px solid #333;
         border-radius: 0;
         padding: 20px;
-        padding-bottom: 80px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
         z-index: 1000;
       `;
     } else {
-      // Desktop: position on right
+      // Desktop: position on right, shorter to leave room for buttons below
       this.detailsPanel.style.cssText = `
         position: fixed;
         right: 20px;
         top: 20px;
         width: 360px;
-        max-height: calc(100vh - 100px);
+        height: calc(100vh - 100px);
         overflow-y: auto;
         background: white;
         border: 2px solid #333;
         border-radius: 8px;
         padding: 20px;
-        padding-bottom: 80px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         z-index: 1000;
       `;
@@ -167,13 +167,13 @@ export class GDVisualization {
   
   private updateContainerPosition(): void {
     if (this.isMobile) {
-      // On mobile, position container below commentary (40vh)
+      // On mobile, position container at top (commentary is at bottom, 50vh + 60px for buttons)
       this.container.style.cssText = `
         position: fixed;
-        top: 40vh;
+        top: 0;
         left: 0;
         width: 100vw;
-        height: calc(100vh - 40vh);
+        height: calc(100vh - 50vh - 60px);
       `;
     } else {
       // Desktop: normal positioning
@@ -194,14 +194,7 @@ export class GDVisualization {
   
   private createNavigationButtons(): void {
     const navContainer = document.createElement('div');
-    navContainer.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 1001;
-    `;
+    navContainer.className = 'nav-container';
     
     this.backButton = document.createElement('button');
     this.backButton.textContent = '← Back';
@@ -235,6 +228,37 @@ export class GDVisualization {
     navContainer.appendChild(this.backButton);
     navContainer.appendChild(this.forwardButton);
     document.body.appendChild(navContainer);
+    
+    // Set initial position after adding to DOM
+    this.updateNavigationButtonsPosition();
+  }
+  
+  private updateNavigationButtonsPosition(): void {
+    const navContainer = document.querySelector('.nav-container') as HTMLElement;
+    if (!navContainer) return;
+    
+    if (this.isMobile) {
+      // Mobile: position at very bottom, centered
+      navContainer.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 1002;
+      `;
+    } else {
+      // Desktop: position at bottom right, below commentary container
+      navContainer.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 1001;
+      `;
+    }
   }
   
   private goForward(): void {
