@@ -477,13 +477,15 @@ export class GDVisualization {
     if (this.isResizing) {
       clickAreasMerged
         .attr('x', d => this.xScale(d.name) || 0)
-        .attr('width', this.xScale.bandwidth());
+        .attr('width', this.xScale.bandwidth())
+        .attr('height', this.height);
     } else {
       clickAreasMerged
         .transition()
         .duration(500)
         .attr('x', d => this.xScale(d.name) || 0)
-        .attr('width', this.xScale.bandwidth());
+        .attr('width', this.xScale.bandwidth())
+        .attr('height', this.height);
     }
     
     // Add new bars
