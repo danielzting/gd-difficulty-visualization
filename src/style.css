@@ -19,68 +19,121 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, white, transparent),
+    radial-gradient(2px 2px at 60% 70%, white, transparent),
+    radial-gradient(1px 1px at 50% 50%, white, transparent),
+    radial-gradient(1px 1px at 80% 10%, white, transparent),
+    radial-gradient(2px 2px at 90% 40%, white, transparent),
+    radial-gradient(1px 1px at 33% 60%, white, transparent),
+    radial-gradient(1px 1px at 66% 20%, white, transparent);
+  background-size: 200% 200%;
+  background-position: 0% 0%;
+  animation: starfield 20s linear infinite;
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes starfield {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
 }
 
 #app {
   width: 100vw;
   height: 100vh;
   position: relative;
+  z-index: 1;
 }
 
 /* Chart styling */
 svg {
   display: block;
-  background: white;
+  background: transparent;
 }
 
 .bar {
-  transition: fill 0.2s ease;
+  transition: fill 0.2s ease, filter 0.2s ease;
+  fill: #4a9eff;
+  filter: drop-shadow(0 0 6px rgba(74, 158, 255, 0.8));
 }
 
 .bar:hover {
-  opacity: 0.8;
+  fill: #6bb3ff;
+  filter: drop-shadow(0 0 12px rgba(107, 179, 255, 1));
 }
 
 /* Axis styling */
 .x-axis text,
 .y-axis text {
   font-size: 12px;
-  fill: #333;
+  fill: #a8d8ff;
+  font-weight: 500;
+  text-shadow: 0 0 4px rgba(168, 216, 255, 0.6);
 }
 
 .x-axis path,
 .y-axis path,
 .x-axis line,
 .y-axis line {
-  stroke: #333;
-  stroke-width: 1;
+  stroke: #4a9eff;
+  stroke-width: 1.5;
+  opacity: 0.5;
 }
 
 /* Details panel styling */
 .details-panel {
   font-size: 14px;
   line-height: 1.5;
+  background: rgba(10, 10, 26, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-color: #4a9eff !important;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3) !important;
 }
 
 .details-panel h2 {
   font-size: 24px;
-  color: #333;
-  border-bottom: 2px solid #2196F3;
+  color: #ffffff;
+  border-bottom: 2px solid #4a9eff;
   padding-bottom: 8px;
+  text-shadow: 0 0 8px rgba(74, 158, 255, 0.8);
 }
 
 .details-panel a {
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  color: #6bb3ff;
+  text-shadow: 0 0 4px rgba(107, 179, 255, 0.6);
 }
 
 .details-panel a:hover {
-  color: #1976D2;
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(107, 179, 255, 1);
   text-decoration: underline;
 }
 
 /* Commentary content styling */
 .commentary-content {
-  color: #333;
+  color: #e0e8ff;
 }
 
 .commentary-content p {
@@ -104,9 +157,10 @@ svg {
 .commentary-content blockquote {
   margin: 1em 0;
   padding: 0.5em 1em;
-  border-left: 4px solid #2196F3;
-  background-color: #f5f5f5;
+  border-left: 4px solid #4a9eff;
+  background-color: rgba(74, 158, 255, 0.1);
   font-style: italic;
+  box-shadow: 0 0 10px rgba(74, 158, 255, 0.2);
 }
 
 .commentary-content h1,
@@ -135,19 +189,23 @@ svg {
 }
 
 .commentary-content code {
-  background-color: #f5f5f5;
+  background-color: rgba(74, 158, 255, 0.15);
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
   font-size: 0.9em;
+  color: #a8d8ff;
+  border: 1px solid rgba(74, 158, 255, 0.3);
 }
 
 .commentary-content pre {
-  background-color: #f5f5f5;
+  background-color: rgba(10, 10, 26, 0.8);
   padding: 1em;
   border-radius: 4px;
   overflow-x: auto;
   margin: 1em 0;
+  border: 1px solid rgba(74, 158, 255, 0.3);
+  box-shadow: 0 0 10px rgba(74, 158, 255, 0.2);
 }
 
 .commentary-content pre code {
@@ -158,16 +216,24 @@ svg {
 /* Navigation buttons */
 .nav-button {
   transition: all 0.2s ease;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
 }
 
 .nav-button:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.8);
+  filter: brightness(1.2);
 }
 
 .nav-button:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: 0 0 5px rgba(74, 158, 255, 0.2);
 }
 
 /* Responsive design */
