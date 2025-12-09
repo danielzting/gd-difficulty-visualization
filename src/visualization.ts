@@ -73,6 +73,7 @@ export class GDVisualization {
       this.updateDimensions();
       this.updateDetailsPanelPosition();
       this.updateContainerPosition();
+      this.updateNavigationButtonsPosition();
       this.svg
         .attr('width', this.width + this.margin.left + this.margin.right)
         .attr('height', this.height + this.margin.top + this.margin.bottom);
@@ -101,9 +102,10 @@ export class GDVisualization {
   
   private updateDimensions(): void {
     if (this.isMobile) {
-      // On mobile: full width, height accounts for commentary panel at top (max 40vh)
-      const commentaryMaxHeight = window.innerHeight * 0.4; // 40vh
-      const availableHeight = window.innerHeight - commentaryMaxHeight;
+      // On mobile: full width, height accounts for commentary panel at bottom (50vh) and buttons
+      const commentaryHeight = window.innerHeight * 0.5; // 50vh
+      const buttonHeight = 60; // Space for buttons
+      const availableHeight = window.innerHeight - commentaryHeight - buttonHeight;
       
       // Adjust margins for mobile
       this.margin.right = 20;
@@ -127,41 +129,37 @@ export class GDVisualization {
   
   private updateDetailsPanelPosition(): void {
     if (this.isMobile) {
-      // Mobile: position at top, full width
+      // Mobile: position at bottom, full width, 50vh height, with space below for buttons
       this.detailsPanel.style.cssText = `
         position: fixed;
-        top: 0;
+        bottom: 70px;
         left: 0;
         right: 0;
         width: 100vw;
-        max-height: 40vh;
+        height: 50vh;
         overflow-y: auto;
-        background: rgba(10, 10, 26, 0.95);
-        backdrop-filter: blur(10px);
+        background: white;
         border: none;
-        border-bottom: 2px solid #4a9eff;
+        border-top: 2px solid #333;
         border-radius: 0;
         padding: 20px;
-        padding-bottom: 80px;
-        box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
         z-index: 1000;
       `;
     } else {
-      // Desktop: position on right
+      // Desktop: position on right, shorter to leave room for buttons below
       this.detailsPanel.style.cssText = `
         position: fixed;
         right: 20px;
         top: 20px;
         width: 360px;
-        max-height: calc(100vh - 100px);
+        height: calc(100vh - 100px);
         overflow-y: auto;
-        background: rgba(10, 10, 26, 0.95);
-        backdrop-filter: blur(10px);
-        border: 2px solid #4a9eff;
+        background: white;
+        border: 2px solid #333;
         border-radius: 8px;
         padding: 20px;
-        padding-bottom: 80px;
-        box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         z-index: 1000;
       `;
     }
@@ -169,13 +167,13 @@ export class GDVisualization {
   
   private updateContainerPosition(): void {
     if (this.isMobile) {
-      // On mobile, position container below commentary (40vh)
+      // On mobile, position container at top (commentary is at bottom, 50vh + 60px for buttons)
       this.container.style.cssText = `
         position: fixed;
-        top: 40vh;
+        top: 0;
         left: 0;
         width: 100vw;
-        height: calc(100vh - 40vh);
+        height: calc(100vh - 50vh - 60px);
       `;
     } else {
       // Desktop: normal positioning
@@ -196,14 +194,7 @@ export class GDVisualization {
   
   private createNavigationButtons(): void {
     const navContainer = document.createElement('div');
-    navContainer.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 1001;
-    `;
+    navContainer.className = 'nav-container';
     
     this.backButton = document.createElement('button');
     this.backButton.textContent = '← Back';
@@ -212,11 +203,10 @@ export class GDVisualization {
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      background: #4CAF50;
       color: white;
-      border: 1px solid rgba(168, 216, 255, 0.3);
-      border-radius: 6px;
-      font-weight: 600;
+      border: none;
+      border-radius: 4px;
     `;
     this.backButton.disabled = true;
     this.backButton.addEventListener('click', () => this.goBack());
@@ -228,17 +218,47 @@ export class GDVisualization {
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      background: linear-gradient(135deg, #4a9eff 0%, #6bb3ff 100%);
+      background: #2196F3;
       color: white;
-      border: 1px solid rgba(168, 216, 255, 0.3);
-      border-radius: 6px;
-      font-weight: 600;
+      border: none;
+      border-radius: 4px;
     `;
     this.forwardButton.addEventListener('click', () => this.goForward());
     
     navContainer.appendChild(this.backButton);
     navContainer.appendChild(this.forwardButton);
     document.body.appendChild(navContainer);
+    
+    // Set initial position after adding to DOM
+    this.updateNavigationButtonsPosition();
+  }
+  
+  private updateNavigationButtonsPosition(): void {
+    const navContainer = document.querySelector('.nav-container') as HTMLElement;
+    if (!navContainer) return;
+    
+    if (this.isMobile) {
+      // Mobile: position at very bottom, centered
+      navContainer.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 1002;
+      `;
+    } else {
+      // Desktop: position at bottom right, below commentary container
+      navContainer.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 1001;
+      `;
+    }
   }
   
   private goForward(): void {
@@ -288,13 +308,13 @@ export class GDVisualization {
     
     this.detailsPanel.innerHTML = `
       <h2 style="margin-top: 0; margin-bottom: 10px;">${level.name}</h2>
-      ${level.author ? `<p style="color: #a8d8ff; margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
-      <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #ffffff; text-shadow: 0 0 8px rgba(168, 216, 255, 0.8);">
+      ${level.author ? `<p style="color: #666; margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
+      <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
         Difficulty: ${difficultyStr}
       </p>
       <div style="margin-bottom: 15px;">
-        ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: #6bb3ff; text-decoration: none; text-shadow: 0 0 4px rgba(107, 179, 255, 0.6);">📺 YouTube</a>` : ''}
-        ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: #6bb3ff; text-decoration: none; text-shadow: 0 0 4px rgba(107, 179, 255, 0.6);">🎮 GDBrowser</a>` : ''}
+        ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: #2196F3; text-decoration: none;">📺 YouTube</a>` : ''}
+        ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: #2196F3; text-decoration: none;">🎮 GDBrowser</a>` : ''}
       </div>
       ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;" class="commentary-content">${level.commentary}</div>` : ''}
     `;
@@ -362,13 +382,12 @@ export class GDVisualization {
           // Highlight this label
           d3.select(event.currentTarget as SVGTextElement)
             .style('font-weight', 'bold')
-            .style('fill', '#ffffff')
-            .style('text-shadow', '0 0 8px rgba(168, 216, 255, 1)');
+            .style('fill', '#2196F3');
           // Also highlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
             .filter((clickData: LevelData) => clickData.name === levelName)
-            .style('fill', 'rgba(74, 158, 255, 0.2)');
+            .style('fill', 'rgba(33, 150, 243, 0.1)');
         }
       })
       .on('mouseout', (event, d) => {
@@ -377,8 +396,7 @@ export class GDVisualization {
           // Unhighlight this label
           d3.select(event.currentTarget as SVGTextElement)
             .style('font-weight', 'normal')
-            .style('fill', '#a8d8ff')
-            .style('text-shadow', '0 0 4px rgba(168, 216, 255, 0.6)');
+            .style('fill', '#333');
           // Also unhighlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
@@ -455,13 +473,12 @@ export class GDVisualization {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'bold')
-                .style('fill', '#ffffff')
-                .style('text-shadow', '0 0 8px rgba(168, 216, 255, 1)');
+                .style('fill', '#2196F3');
             }
           });
         // Highlight click area
         d3.select(event.currentTarget as SVGRectElement)
-          .style('fill', 'rgba(74, 158, 255, 0.2)');
+          .style('fill', 'rgba(33, 150, 243, 0.1)');
       })
       .on('mouseout', (event, d) => {
         // Unhighlight x-axis label
@@ -471,8 +488,7 @@ export class GDVisualization {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'normal')
-                .style('fill', '#a8d8ff')
-                .style('text-shadow', '0 0 4px rgba(168, 216, 255, 0.6)');
+                .style('fill', '#333');
             }
           });
         // Unhighlight click area
@@ -485,13 +501,15 @@ export class GDVisualization {
     if (this.isResizing) {
       clickAreasMerged
         .attr('x', d => this.xScale(d.name) || 0)
-        .attr('width', this.xScale.bandwidth());
+        .attr('width', this.xScale.bandwidth())
+        .attr('height', this.height);
     } else {
       clickAreasMerged
         .transition()
         .duration(500)
         .attr('x', d => this.xScale(d.name) || 0)
-        .attr('width', this.xScale.bandwidth());
+        .attr('width', this.xScale.bandwidth())
+        .attr('height', this.height);
     }
     
     // Add new bars
@@ -502,7 +520,7 @@ export class GDVisualization {
       .attr('width', this.xScale.bandwidth())
       .attr('y', this.height)
       .attr('height', 0)
-      .style('fill', '#4a9eff')
+      .style('fill', '#2196F3')
       .style('pointer-events', 'none'); // Let click areas handle interactions
     
     // Update existing and new bars
