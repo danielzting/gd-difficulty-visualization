@@ -15,7 +15,7 @@ export class GDVisualization {
   private yScale: d3.ScaleLinear<number, number>;
   private visibleLevels: number = 1;
   private selectedLevelIndex: number = 0;
-  private margin = { top: 20, right: 400, bottom: 130, left: 60 };
+  private margin = { top: 20, right: 400, bottom: 145, left: 60 };
   private isMobile: boolean = false;
   private width: number;
   private height: number;
@@ -110,7 +110,7 @@ export class GDVisualization {
       // Adjust margins for mobile
       this.margin.right = 20;
       this.margin.left = 20;
-      this.margin.bottom = 110;
+      this.margin.bottom = 145;
       this.margin.top = 20;
       
       this.width = window.innerWidth - this.margin.left - this.margin.right;
@@ -119,7 +119,7 @@ export class GDVisualization {
       // Desktop: reserve space on right for commentary
       this.margin.right = 400;
       this.margin.left = 60;
-      this.margin.bottom = 130;
+      this.margin.bottom = 145;
       this.margin.top = 20;
       
       this.width = window.innerWidth - this.margin.left - this.margin.right;
@@ -415,9 +415,9 @@ export class GDVisualization {
     // Apply rotation and add hover handlers to all text elements (both new and existing)
     xAxisGroupMerged.selectAll('text')
       .style('text-anchor', 'end')
-      .attr('dx', '-.8em')
-      .attr('dy', '.15em')
-      .attr('transform', 'rotate(-45)')
+      .attr('dx', '-.5em')
+      .attr('dy', '.35em')
+      .attr('transform', 'rotate(-90)')
       .style('cursor', 'pointer')
       .on('click', (event, d) => {
         const level = visibleData.find(l => l.name === d);
