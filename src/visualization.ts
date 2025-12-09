@@ -23,6 +23,9 @@ export class GDVisualization {
   private forwardButton: HTMLElement;
   private backButton: HTMLElement;
   private isResizing: boolean = false;
+  private isSelecting: boolean = false;
+  private longPressTimer: number | null = null;
+  private selectionLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null;
 
   constructor(config: VisualizationConfig) {
     this.data = config.data;
@@ -48,6 +51,21 @@ export class GDVisualization {
     
     this.chartGroup = this.svg.append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+
+    // Add a selection line (hidden by default)
+    this.selectionLine = this.chartGroup.append('line')
+      .attr('class', 'selection-line')
+      .attr('y1', 0)
+      .attr('y2', this.height)
+      .attr('x1', 0)
+      .attr('x2', 0)
+      .style('stroke', '#FF5722')
+      .style('stroke-width', '2px')
+      .style('pointer-events', 'none')
+      .style('display', 'none');
+
+    // Setup touch / mouse handlers for hold-and-swipe selection
+    this.setupTouchHandlers();
     
     // Initialize scales
     this.xScale = d3.scaleBand()
@@ -349,6 +367,141 @@ export class GDVisualization {
       (this.forwardButton as HTMLElement).style.cursor = 'pointer';
     }
   }
+
+  private clientXToChartX(clientX: number): number {
+    const svgEl = this.svg.node() as SVGSVGElement;
+    const rect = svgEl.getBoundingClientRect();
+    return clientX - rect.left - this.margin.left;
+  }
+
+  private xToNearestIndex(x: number): number {
+    const visibleData = this.data.slice(0, this.visibleLevels);
+    const bw = this.xScale.bandwidth();
+    let nearest = 0;
+    let minDist = Infinity;
+    visibleData.forEach((d, i) => {
+      const start = (this.xScale(d.name) || 0) + bw / 2;
+      const dist = Math.abs(start - x);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = this.data.indexOf(d);
+      }
+    });
+    return nearest;
+  }
+
+  private setupTouchHandlers(): void {
+    const svgEl = this.svg.node();
+    if (!svgEl) return;
+
+    let activeTouchId: number | null = null;
+
+    const startPress = (clientX: number) => {
+      // Start a short long-press timer to enter selection mode
+      if (this.longPressTimer) window.clearTimeout(this.longPressTimer);
+      this.longPressTimer = window.setTimeout(() => {
+        this.isSelecting = true;
+        const x = this.clientXToChartX(clientX);
+        if (this.selectionLine) {
+          this.selectionLine
+            .attr('x1', x)
+            .attr('x2', x)
+            .attr('y2', this.height)
+            .style('display', null);
+        }
+        const idx = this.xToNearestIndex(x);
+        this.selectedLevelIndex = idx;
+        this.updateDetailsPanel(this.data[this.selectedLevelIndex]);
+        // Highlight the related click area visually
+        this.chartGroup.selectAll('.click-area')
+          .style('fill', (d: LevelData, i: number) => this.data.indexOf(d) === idx ? 'rgba(255,87,34,0.12)' : 'transparent');
+      }, 180);
+    };
+
+    const movePress = (clientX: number) => {
+      if (!this.isSelecting) return;
+      const x = this.clientXToChartX(clientX);
+      if (this.selectionLine) {
+        this.selectionLine
+          .attr('x1', x)
+          .attr('x2', x);
+      }
+      const idx = this.xToNearestIndex(x);
+      if (idx !== this.selectedLevelIndex) {
+        this.selectedLevelIndex = idx;
+        this.updateDetailsPanel(this.data[this.selectedLevelIndex]);
+        this.chartGroup.selectAll('.click-area')
+          .style('fill', (d: LevelData) => this.data.indexOf(d) === idx ? 'rgba(255,87,34,0.12)' : 'transparent');
+      }
+    };
+
+    const endPress = () => {
+      if (this.longPressTimer) {
+        window.clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
+      if (this.isSelecting) {
+        this.isSelecting = false;
+        if (this.selectionLine) this.selectionLine.style('display', 'none');
+        this.chartGroup.selectAll('.click-area').style('fill', 'transparent');
+      }
+    };
+
+    // Touch events
+    svgEl.addEventListener('touchstart', (ev: TouchEvent) => {
+      if (ev.touches.length === 0) return;
+      const t = ev.touches[0];
+      activeTouchId = t.identifier;
+      startPress(t.clientX);
+    }, { passive: true });
+
+    svgEl.addEventListener('touchmove', (ev: TouchEvent) => {
+      if (activeTouchId === null) return;
+      for (let i = 0; i < ev.touches.length; i++) {
+        const t = ev.touches[i];
+        if (t.identifier === activeTouchId) {
+          // If moved significantly before long-press triggers, cancel long-press
+          if (!this.isSelecting && this.longPressTimer) {
+            // small movement threshold
+            // We'll just cancel if movement detected
+            window.clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+          movePress(t.clientX);
+          break;
+        }
+      }
+    }, { passive: true });
+
+    svgEl.addEventListener('touchend', (ev: TouchEvent) => {
+      activeTouchId = null;
+      endPress();
+    });
+
+    svgEl.addEventListener('touchcancel', () => {
+      activeTouchId = null;
+      endPress();
+    });
+
+    // Mouse events (desktop) — allow click-and-drag selection when pressing mouse
+    let mouseDown = false;
+    svgEl.addEventListener('mousedown', (ev: MouseEvent) => {
+      mouseDown = true;
+      startPress(ev.clientX);
+    });
+
+    window.addEventListener('mousemove', (ev: MouseEvent) => {
+      if (!mouseDown) return;
+      movePress(ev.clientX);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (mouseDown) {
+        mouseDown = false;
+        endPress();
+      }
+    });
+  }
   
   private updateDetailsPanel(level: LevelData): void {
     // Format difficulty value - show decimals if needed
@@ -411,6 +564,10 @@ export class GDVisualization {
         .duration(500)
         .call(xAxis);
     }
+
+    // On mobile we don't want x-axis labels — hide them completely
+    xAxisGroupMerged.selectAll('text')
+      .style('display', this.isMobile ? 'none' : null);
     
     // Apply rotation and add hover handlers to all text elements (both new and existing)
     xAxisGroupMerged.selectAll('text')
@@ -600,6 +757,12 @@ export class GDVisualization {
     }
     
     this.updateNavigationButtons();
+
+    // Ensure selection line height matches current chart height
+    if (this.selectionLine) {
+      this.selectionLine.attr('y2', this.height);
+      if (!this.isSelecting) this.selectionLine.style('display', 'none');
+    }
   }
 }
 

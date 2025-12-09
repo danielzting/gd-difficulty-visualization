@@ -56,6 +56,14 @@ svg {
   stroke-width: 1;
 }
 
+/* Selection line for mobile hold-and-swipe */
+.selection-line {
+  stroke: #FF5722;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
 /* Details panel styling */
 .details-panel {
   font-size: 14px;
@@ -186,5 +194,6 @@ svg {
 
   .x-axis text {
     font-size: 10px;
+    display: none; /* ensure labels are hidden on small screens as a fallback */
   }
 }
