@@ -15,7 +15,7 @@ export class GDVisualization {
   private yScale: d3.ScaleLinear<number, number>;
   private visibleLevels: number = 1;
   private selectedLevelIndex: number = 0;
-  private margin = { top: 20, right: 400, bottom: 100, left: 60 };
+  private margin = { top: 20, right: 400, bottom: 130, left: 60 };
   private isMobile: boolean = false;
   private width: number;
   private height: number;
@@ -110,7 +110,7 @@ export class GDVisualization {
       // Adjust margins for mobile
       this.margin.right = 20;
       this.margin.left = 20;
-      this.margin.bottom = 80;
+      this.margin.bottom = 110;
       this.margin.top = 20;
       
       this.width = window.innerWidth - this.margin.left - this.margin.right;
@@ -119,7 +119,7 @@ export class GDVisualization {
       // Desktop: reserve space on right for commentary
       this.margin.right = 400;
       this.margin.left = 60;
-      this.margin.bottom = 100;
+      this.margin.bottom = 130;
       this.margin.top = 20;
       
       this.width = window.innerWidth - this.margin.left - this.margin.right;
@@ -405,8 +405,10 @@ export class GDVisualization {
         }
       });
     
-    // Update y-axis (no label)
-    const yAxis = d3.axisLeft(this.yScale);
+    // Update y-axis (no ticks or labels)
+    const yAxis = d3.axisLeft(this.yScale)
+      .tickSize(0)
+      .tickFormat('');
     
     const yAxisGroup = this.chartGroup.selectAll<SVGGElement, unknown>('.y-axis')
       .data([null]);
