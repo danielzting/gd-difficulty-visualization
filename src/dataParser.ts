@@ -52,11 +52,13 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
 
     // Find difficulty value (supports decimals)
     let difficulty: number | null = null;
+    let difficultyElementIndex: number = -1;
     for (const element of allContent) {
       const text = element.textContent || '';
       const difficultyMatch = text.match(/Difficulty\s+value:\s*([\d,.]+)/i);
       if (difficultyMatch) {
         difficulty = parseFloat(difficultyMatch[1].replace(/,/g, ''));
+        difficultyElementIndex = allContent.indexOf(element);
         break;
       }
     }
@@ -65,12 +67,15 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
       continue; // Skip if no difficulty found
     }
 
-    // Find YouTube and GDBrowser links
+    // Find YouTube and GDBrowser links. Also collect hrefs from the difficulty element
+    // so we only remove those specific anchors from commentary (preserve other anchors).
     let youtubeUrl: string | null = null;
     let gdBrowserUrl: string | null = null;
     let linksFound = false;
+    const excludedHrefs = new Set<string>();
 
-    for (const element of allContent) {
+    for (let idx = 0; idx < allContent.length; idx++) {
+      const element = allContent[idx];
       const links = element.querySelectorAll('a');
       for (const link of links) {
         const href = link.getAttribute('href') || '';
@@ -82,6 +87,12 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
         } else if (href.includes('gdbrowser.com') || linkText.includes('gdbrowser')) {
           gdBrowserUrl = href;
           linksFound = true;
+        }
+
+        // If this link is inside the same element that contained the difficulty value,
+        // mark it for exclusion from the commentary HTML so we don't duplicate it there.
+        if (idx === difficultyElementIndex && href) {
+          excludedHrefs.add(href);
         }
       }
       if (linksFound) {
@@ -138,8 +149,8 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
         const links = clone.querySelectorAll('a');
         links.forEach(link => {
           const href = link.getAttribute('href') || '';
-          if (href.includes('youtube.com') || href.includes('youtu.be') ||
-            href.includes('gdbrowser.com')) {
+          // Remove only those anchors that were part of the difficulty line (we collected them).
+          if (href && excludedHrefs.has(href)) {
             link.remove();
           }
         });
