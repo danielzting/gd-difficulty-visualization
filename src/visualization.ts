@@ -237,6 +237,10 @@ export class GDVisualization {
     const navContainer = document.querySelector('.nav-container') as HTMLElement;
     if (!navContainer) return;
     
+    // Preserve disabled state
+    const backDisabled = this.backButton.disabled;
+    const forwardDisabled = this.forwardButton.disabled;
+    
     if (this.isMobile) {
       // Mobile: position at very bottom, centered
       navContainer.style.cssText = `
@@ -248,6 +252,31 @@ export class GDVisualization {
         gap: 10px;
         z-index: 1002;
       `;
+      // Make buttons wider and equal width on mobile
+      this.backButton.style.cssText = `
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: ${backDisabled ? 'not-allowed' : 'pointer'};
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        min-width: 120px;
+        white-space: nowrap;
+        opacity: ${backDisabled ? '0.5' : '1'};
+      `;
+      this.forwardButton.style.cssText = `
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: ${forwardDisabled ? 'not-allowed' : 'pointer'};
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        min-width: 120px;
+        white-space: nowrap;
+        opacity: ${forwardDisabled ? '0.5' : '1'};
+      `;
     } else {
       // Desktop: position at bottom right, below commentary container
       navContainer.style.cssText = `
@@ -257,6 +286,27 @@ export class GDVisualization {
         display: flex;
         gap: 10px;
         z-index: 1001;
+      `;
+      // Reset button styles for desktop
+      this.backButton.style.cssText = `
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: ${backDisabled ? 'not-allowed' : 'pointer'};
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        opacity: ${backDisabled ? '0.5' : '1'};
+      `;
+      this.forwardButton.style.cssText = `
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: ${forwardDisabled ? 'not-allowed' : 'pointer'};
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        opacity: ${forwardDisabled ? '0.5' : '1'};
       `;
     }
   }
