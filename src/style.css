@@ -23,24 +23,27 @@ body {
 
 /* Apply dark background and default text color */
 body {
-  background: var(--bg);
+  background: var(--canvas-bg);
   color: var(--text);
 }
 
 :root {
   /* Dark theme variables */
-  --bg: #0f1720;
   --panel-bg: #0b1220;
-  --panel-border: rgba(255,255,255,0.06);
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --axis: rgba(255, 255, 255, 0.18);
+  /* stronger axis contrast */
   --canvas-bg: #071018;
   --text: #e6eef8;
   --muted: #9fb2c8;
-  --accent: #64b5f6; /* bluish accent */
+  --accent: #64b5f6;
+  /* bluish accent */
   --bar: #42a5f5;
   --selection: #ffb74d;
   --hover-bg: rgba(100, 181, 246, 0.08);
-  --btn-back: #2e7d32;
+  /* Make back and forward share the same primary blue by default */
   --btn-forward: #1565c0;
+  --btn-back: var(--btn-forward);
   --btn-text: #ffffff;
 }
 
@@ -76,7 +79,7 @@ svg {
 .y-axis path,
 .x-axis line,
 .y-axis line {
-  stroke: var(--panel-border);
+  stroke: var(--axis);
   stroke-width: 1;
 }
 
@@ -90,7 +93,8 @@ svg {
 
 /* Details panel styling */
 .details-panel {
-  font-size: 14px;
+  font-size: 16px;
+  /* slightly larger on desktop */
   line-height: 1.5;
   color: var(--text);
   background: var(--panel-bg);
@@ -141,7 +145,7 @@ svg {
   margin: 1em 0;
   padding: 0.5em 1em;
   border-left: 4px solid var(--accent);
-  background-color: rgba(255,255,255,0.02);
+  background-color: rgba(255, 255, 255, 0.02);
   font-style: italic;
 }
 
@@ -171,7 +175,7 @@ svg {
 }
 
 .commentary-content code {
-  background-color: rgba(255,255,255,0.03);
+  background-color: rgba(255, 255, 255, 0.03);
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
@@ -179,7 +183,7 @@ svg {
 }
 
 .commentary-content pre {
-  background-color: rgba(255,255,255,0.03);
+  background-color: rgba(255, 255, 255, 0.03);
   padding: 1em;
   border-radius: 4px;
   overflow-x: auto;
@@ -201,10 +205,10 @@ svg {
   border-radius: 4px;
 }
 
-  .nav-button:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  }
+.nav-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
 
 .nav-button:active:not(:disabled) {
   transform: scale(0.98);
@@ -216,7 +220,10 @@ svg {
     width: calc(100vw - 40px) !important;
     right: 20px !important;
     left: 20px !important;
-    max-height: 52vh !important; /* increased to match 55vh overall (allow for padding) */
+    max-height: 52vh !important;
+    /* increased to match 55vh overall (allow for padding) */
+    font-size: 14px !important;
+    /* keep slightly smaller on mobile */
   }
 
   .nav-button {
@@ -226,6 +233,7 @@ svg {
 
   .x-axis text {
     font-size: 10px;
-    display: none; /* ensure labels are hidden on small screens as a fallback */
+    display: none;
+    /* ensure labels are hidden on small screens as a fallback */
   }
 }

@@ -30,25 +30,25 @@ export class GDVisualization {
   constructor(config: VisualizationConfig) {
     this.data = config.data;
     this.container = config.container;
-    
+
     // Check if mobile
     this.updateMobileState();
-    
+
     // Create details panel first (needed for dimension calculation on mobile)
     this.createDetailsPanel();
-    
+
     // Calculate dimensions (after panel is created so we can measure it if needed)
     this.updateDimensions();
-    
+
     // Update container position for mobile layout
     this.updateContainerPosition();
-    
+
     // Create SVG
     this.svg = d3.select(this.container)
       .append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('height', this.height + this.margin.top + this.margin.bottom);
-    
+
     this.chartGroup = this.svg.append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
 
@@ -66,24 +66,24 @@ export class GDVisualization {
 
     // Setup touch / mouse handlers for hold-and-swipe selection
     this.setupTouchHandlers();
-    
+
     // Initialize scales
     this.xScale = d3.scaleBand()
       .domain(this.data.map(d => d.name))
       .range([0, this.width])
       .padding(0.2);
-    
+
     const maxDifficulty = d3.max(this.data, d => d.difficulty) || 1;
     this.yScale = d3.scaleLinear()
       .domain([0, maxDifficulty])
       .range([this.height, 0]);
-    
+
     // Create navigation buttons
     this.createNavigationButtons();
-    
+
     // Initial render
     this.update();
-    
+
     // Handle window resize
     let resizeTimeout: number | null = null;
     window.addEventListener('resize', () => {
@@ -97,41 +97,41 @@ export class GDVisualization {
         .attr('height', this.height + this.margin.top + this.margin.bottom);
       this.xScale.range([0, this.width]);
       this.yScale.range([this.height, 0]);
-      
+
       // Set resizing flag and update immediately (no transitions)
       this.isResizing = true;
       this.update();
-      
+
       // Clear any existing timeout
       if (resizeTimeout !== null) {
         clearTimeout(resizeTimeout);
       }
-      
+
       // After resize stops, allow transitions again
       resizeTimeout = window.setTimeout(() => {
         this.isResizing = false;
       }, 150);
     });
   }
-  
+
   private updateMobileState(): void {
     this.isMobile = window.innerWidth <= 768;
   }
-  
+
   private updateDimensions(): void {
     if (this.isMobile) {
       // On mobile: full width, height accounts for commentary panel at bottom (55vh) and buttons
       const commentaryHeight = window.innerHeight * 0.55; // 55vh (use freed-up label space)
       const buttonHeight = 60; // Space for buttons
       const availableHeight = window.innerHeight - commentaryHeight - buttonHeight;
-      
+
       // Adjust margins for mobile
       this.margin.right = 20;
       this.margin.left = 20;
       // Reduce bottom margin because x-axis labels are hidden on mobile
       this.margin.bottom = 60;
       this.margin.top = 20;
-      
+
       this.width = window.innerWidth - this.margin.left - this.margin.right;
       this.height = Math.max(200, availableHeight - this.margin.top - this.margin.bottom);
     } else {
@@ -140,12 +140,12 @@ export class GDVisualization {
       this.margin.left = 60;
       this.margin.bottom = 145;
       this.margin.top = 20;
-      
+
       this.width = window.innerWidth - this.margin.left - this.margin.right;
       this.height = window.innerHeight - this.margin.top - this.margin.bottom;
     }
   }
-  
+
   private updateDetailsPanelPosition(): void {
     if (this.isMobile) {
       // Mobile: position at bottom, full width, 50vh height, with space below for buttons
@@ -183,7 +183,7 @@ export class GDVisualization {
       `;
     }
   }
-  
+
   private updateContainerPosition(): void {
     if (this.isMobile) {
       // On mobile, position container at top (commentary is at bottom, 50vh + 60px for buttons)
@@ -203,18 +203,18 @@ export class GDVisualization {
       `;
     }
   }
-  
+
   private createDetailsPanel(): void {
     this.detailsPanel = document.createElement('div');
     this.detailsPanel.className = 'details-panel';
     this.updateDetailsPanelPosition();
     document.body.appendChild(this.detailsPanel);
   }
-  
+
   private createNavigationButtons(): void {
     const navContainer = document.createElement('div');
     navContainer.className = 'nav-container';
-    
+
     this.backButton = document.createElement('button');
     this.backButton.textContent = '← Back';
     this.backButton.className = 'nav-button';
@@ -229,7 +229,7 @@ export class GDVisualization {
     `;
     this.backButton.disabled = true;
     this.backButton.addEventListener('click', () => this.goBack());
-    
+
     this.forwardButton = document.createElement('button');
     this.forwardButton.textContent = 'Forward →';
     this.forwardButton.className = 'nav-button';
@@ -243,23 +243,23 @@ export class GDVisualization {
       border-radius: 4px;
     `;
     this.forwardButton.addEventListener('click', () => this.goForward());
-    
+
     navContainer.appendChild(this.backButton);
     navContainer.appendChild(this.forwardButton);
     document.body.appendChild(navContainer);
-    
+
     // Set initial position after adding to DOM
     this.updateNavigationButtonsPosition();
   }
-  
+
   private updateNavigationButtonsPosition(): void {
     const navContainer = document.querySelector('.nav-container') as HTMLElement;
     if (!navContainer) return;
-    
+
     // Preserve disabled state
     const backDisabled = this.backButton.disabled;
     const forwardDisabled = this.forwardButton.disabled;
-    
+
     if (this.isMobile) {
       // Mobile: position at very bottom, centered
       navContainer.style.cssText = `
@@ -329,7 +329,7 @@ export class GDVisualization {
       `;
     }
   }
-  
+
   private goForward(): void {
     if (this.visibleLevels < this.data.length) {
       this.visibleLevels++;
@@ -338,7 +338,7 @@ export class GDVisualization {
       this.updateNavigationButtons();
     }
   }
-  
+
   private goBack(): void {
     if (this.visibleLevels > 1) {
       this.visibleLevels--;
@@ -347,11 +347,11 @@ export class GDVisualization {
       this.updateNavigationButtons();
     }
   }
-  
+
   private updateNavigationButtons(): void {
     this.backButton.disabled = this.visibleLevels <= 1;
     this.forwardButton.disabled = this.visibleLevels >= this.data.length;
-    
+
     if (this.backButton.disabled) {
       (this.backButton as HTMLElement).style.opacity = '0.5';
       (this.backButton as HTMLElement).style.cursor = 'not-allowed';
@@ -359,7 +359,7 @@ export class GDVisualization {
       (this.backButton as HTMLElement).style.opacity = '1';
       (this.backButton as HTMLElement).style.cursor = 'pointer';
     }
-    
+
     if (this.forwardButton.disabled) {
       (this.forwardButton as HTMLElement).style.opacity = '0.5';
       (this.forwardButton as HTMLElement).style.cursor = 'not-allowed';
@@ -503,13 +503,13 @@ export class GDVisualization {
       }
     });
   }
-  
+
   private updateDetailsPanel(level: LevelData): void {
     // Format difficulty value - show decimals if needed
-    const difficultyStr = level.difficulty % 1 === 0 
-      ? level.difficulty.toLocaleString() 
+    const difficultyStr = level.difficulty % 1 === 0
+      ? level.difficulty.toLocaleString()
       : level.difficulty.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 10 });
-    
+
     this.detailsPanel.innerHTML = `
       <h2 style="margin-top: 0; margin-bottom: 10px;">${level.name}</h2>
       ${level.author ? `<p style="color: var(--muted); margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
@@ -523,17 +523,17 @@ export class GDVisualization {
       ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;" class="commentary-content">${level.commentary}</div>` : ''}
     `;
   }
-  
+
   private update(): void {
     const visibleData = this.data.slice(0, this.visibleLevels);
     const maxDifficulty = d3.max(visibleData, d => d.difficulty) || 1;
-    
+
     // Update y-scale to fit visible data
     this.yScale.domain([0, maxDifficulty]);
-    
+
     // Update x-scale to only show visible levels
     this.xScale.domain(visibleData.map(d => d.name));
-    
+
     // Update x-axis (no tick marks)
     const xAxis = d3.axisBottom(this.xScale)
       .tickSize(0)
@@ -541,21 +541,21 @@ export class GDVisualization {
         const level = visibleData.find(l => l.name === d);
         return level ? level.name : d;
       });
-    
+
     const xAxisGroup = this.chartGroup.selectAll<SVGGElement, unknown>('.x-axis')
       .data([null]);
-    
+
     const xAxisGroupEnter = xAxisGroup.enter()
       .append('g')
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${this.height})`);
-    
+
     const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
-    
+
     // Update transform to position x-axis at bottom (important for vertical resizing)
     xAxisGroupMerged
       .attr('transform', `translate(0,${this.height})`);
-    
+
     // Update the axis (with or without transition based on resize state)
     if (this.isResizing) {
       xAxisGroupMerged.call(xAxis);
@@ -569,7 +569,7 @@ export class GDVisualization {
     // On mobile we don't want x-axis labels — hide them completely
     xAxisGroupMerged.selectAll('text')
       .style('display', this.isMobile ? 'none' : null);
-    
+
     // Apply rotation and add hover handlers to all text elements (both new and existing)
     xAxisGroupMerged.selectAll('text')
       .style('text-anchor', 'end')
@@ -612,21 +612,21 @@ export class GDVisualization {
             .style('fill', 'transparent');
         }
       });
-    
+
     // Update y-axis (no ticks or labels)
     const yAxis = d3.axisLeft(this.yScale)
       .tickSize(0)
       .tickFormat('');
-    
+
     const yAxisGroup = this.chartGroup.selectAll<SVGGElement, unknown>('.y-axis')
       .data([null]);
-    
+
     const yAxisGroupEnter = yAxisGroup.enter()
       .append('g')
       .attr('class', 'y-axis');
-    
+
     const yAxisGroupMerged = yAxisGroupEnter.merge(yAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
-    
+
     if (this.isResizing) {
       yAxisGroupMerged.call(yAxis);
     } else {
@@ -635,11 +635,11 @@ export class GDVisualization {
         .duration(500)
         .call(yAxis);
     }
-    
+
     // Update bars
     const bars = this.chartGroup.selectAll<SVGRectElement, LevelData>('.bar')
       .data(visibleData, d => d.name);
-    
+
     // Remove bars that are no longer visible
     const barsExit = bars.exit();
     if (this.isResizing) {
@@ -655,13 +655,13 @@ export class GDVisualization {
         .attr('y', this.height)
         .remove();
     }
-    
+
     // Add invisible clickable rectangles that extend to the top
     const clickAreas = this.chartGroup.selectAll<SVGRectElement, LevelData>('.click-area')
       .data(visibleData, d => d.name);
-    
+
     clickAreas.exit().remove();
-    
+
     const clickAreasEnter = clickAreas.enter()
       .append('rect')
       .attr('class', 'click-area')
@@ -679,7 +679,7 @@ export class GDVisualization {
         // Highlight x-axis label
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
-          .each(function() {
+          .each(function () {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'bold')
@@ -694,7 +694,7 @@ export class GDVisualization {
         // Unhighlight x-axis label
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
-          .each(function() {
+          .each(function () {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'normal')
@@ -705,9 +705,9 @@ export class GDVisualization {
         d3.select(event.currentTarget as SVGRectElement)
           .style('fill', 'transparent');
       });
-    
+
     const clickAreasMerged = clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
-    
+
     if (this.isResizing) {
       clickAreasMerged
         .attr('x', d => this.xScale(d.name) || 0)
@@ -721,7 +721,7 @@ export class GDVisualization {
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
     }
-    
+
     // Add new bars
     const barsEnter = bars.enter()
       .append('rect')
@@ -732,10 +732,10 @@ export class GDVisualization {
       .attr('height', 0)
       .style('fill', 'var(--bar)')
       .style('pointer-events', 'none'); // Let click areas handle interactions
-    
+
     // Update existing and new bars
     const barsMerged = barsEnter.merge(bars as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
-    
+
     if (this.isResizing) {
       barsMerged
         .attr('x', d => this.xScale(d.name) || 0)
@@ -751,12 +751,12 @@ export class GDVisualization {
         .attr('y', d => this.yScale(d.difficulty))
         .attr('height', d => this.height - this.yScale(d.difficulty));
     }
-    
+
     // Update details panel with selected level
     if (this.selectedLevelIndex < this.data.length) {
       this.updateDetailsPanel(this.data[this.selectedLevelIndex]);
     }
-    
+
     this.updateNavigationButtons();
 
     // Ensure selection line height matches current chart height
@@ -766,4 +766,3 @@ export class GDVisualization {
     }
   }
 }
-
