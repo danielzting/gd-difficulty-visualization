@@ -184,7 +184,7 @@ svg {
     width: calc(100vw - 40px) !important;
     right: 20px !important;
     left: 20px !important;
-    max-height: 40vh !important;
+    max-height: 52vh !important; /* increased to match 55vh overall (allow for padding) */
   }
 
   .nav-button {

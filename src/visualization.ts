@@ -120,15 +120,16 @@ export class GDVisualization {
   
   private updateDimensions(): void {
     if (this.isMobile) {
-      // On mobile: full width, height accounts for commentary panel at bottom (50vh) and buttons
-      const commentaryHeight = window.innerHeight * 0.5; // 50vh
+      // On mobile: full width, height accounts for commentary panel at bottom (55vh) and buttons
+      const commentaryHeight = window.innerHeight * 0.55; // 55vh (use freed-up label space)
       const buttonHeight = 60; // Space for buttons
       const availableHeight = window.innerHeight - commentaryHeight - buttonHeight;
       
       // Adjust margins for mobile
       this.margin.right = 20;
       this.margin.left = 20;
-      this.margin.bottom = 145;
+      // Reduce bottom margin because x-axis labels are hidden on mobile
+      this.margin.bottom = 60;
       this.margin.top = 20;
       
       this.width = window.innerWidth - this.margin.left - this.margin.right;
@@ -154,7 +155,7 @@ export class GDVisualization {
         left: 0;
         right: 0;
         width: 100vw;
-        height: 50vh;
+        height: 55vh;
         overflow-y: auto;
         background: white;
         border: none;
@@ -191,7 +192,7 @@ export class GDVisualization {
         top: 0;
         left: 0;
         width: 100vw;
-        height: calc(100vh - 50vh - 60px);
+        height: calc(100vh - 55vh - 60px);
       `;
     } else {
       // Desktop: normal positioning
