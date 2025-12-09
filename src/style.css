@@ -21,6 +21,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Apply dark background and default text color */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+:root {
+  /* Dark theme variables */
+  --bg: #0f1720;
+  --panel-bg: #0b1220;
+  --panel-border: rgba(255,255,255,0.06);
+  --canvas-bg: #071018;
+  --text: #e6eef8;
+  --muted: #9fb2c8;
+  --accent: #64b5f6; /* bluish accent */
+  --bar: #42a5f5;
+  --selection: #ffb74d;
+  --hover-bg: rgba(100, 181, 246, 0.08);
+  --btn-back: #2e7d32;
+  --btn-forward: #1565c0;
+  --btn-text: #ffffff;
+}
+
 #app {
   width: 100vw;
   height: 100vh;
@@ -30,35 +53,36 @@ body {
 /* Chart styling */
 svg {
   display: block;
-  background: white;
+  background: var(--canvas-bg);
 }
 
 .bar {
   transition: fill 0.2s ease;
+  fill: var(--bar);
 }
 
 .bar:hover {
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 /* Axis styling */
 .x-axis text,
 .y-axis text {
   font-size: 12px;
-  fill: #333;
+  fill: var(--muted);
 }
 
 .x-axis path,
 .y-axis path,
 .x-axis line,
 .y-axis line {
-  stroke: #333;
+  stroke: var(--panel-border);
   stroke-width: 1;
 }
 
 /* Selection line for mobile hold-and-swipe */
 .selection-line {
-  stroke: #FF5722;
+  stroke: var(--selection);
   stroke-width: 2px;
   stroke-linecap: round;
   pointer-events: none;
@@ -68,27 +92,31 @@ svg {
 .details-panel {
   font-size: 14px;
   line-height: 1.5;
+  color: var(--text);
+  background: var(--panel-bg);
+  border-color: var(--panel-border);
 }
 
 .details-panel h2 {
   font-size: 24px;
-  color: #333;
-  border-bottom: 2px solid #2196F3;
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
   padding-bottom: 8px;
 }
 
 .details-panel a {
   transition: color 0.2s ease;
+  color: var(--accent);
 }
 
 .details-panel a:hover {
-  color: #1976D2;
+  color: #bde5ff;
   text-decoration: underline;
 }
 
 /* Commentary content styling */
 .commentary-content {
-  color: #333;
+  color: var(--text);
 }
 
 .commentary-content p {
@@ -112,8 +140,8 @@ svg {
 .commentary-content blockquote {
   margin: 1em 0;
   padding: 0.5em 1em;
-  border-left: 4px solid #2196F3;
-  background-color: #f5f5f5;
+  border-left: 4px solid var(--accent);
+  background-color: rgba(255,255,255,0.02);
   font-style: italic;
 }
 
@@ -143,7 +171,7 @@ svg {
 }
 
 .commentary-content code {
-  background-color: #f5f5f5;
+  background-color: rgba(255,255,255,0.03);
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
@@ -151,7 +179,7 @@ svg {
 }
 
 .commentary-content pre {
-  background-color: #f5f5f5;
+  background-color: rgba(255,255,255,0.03);
   padding: 1em;
   border-radius: 4px;
   overflow-x: auto;
@@ -167,12 +195,16 @@ svg {
 .nav-button {
   transition: all 0.2s ease;
   font-weight: 500;
+  color: var(--btn-text);
+  background: var(--btn-forward);
+  border: none;
+  border-radius: 4px;
 }
 
-.nav-button:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
+  .nav-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  }
 
 .nav-button:active:not(:disabled) {
   transform: scale(0.98);

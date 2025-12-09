@@ -59,7 +59,7 @@ export class GDVisualization {
       .attr('y2', this.height)
       .attr('x1', 0)
       .attr('x2', 0)
-      .style('stroke', '#FF5722')
+      .style('stroke', 'var(--selection)')
       .style('stroke-width', '2px')
       .style('pointer-events', 'none')
       .style('display', 'none');
@@ -157,12 +157,12 @@ export class GDVisualization {
         width: 100vw;
         height: 55vh;
         overflow-y: auto;
-        background: white;
+        background: var(--panel-bg);
         border: none;
-        border-top: 2px solid #333;
+        border-top: 2px solid var(--panel-border);
         border-radius: 0;
         padding: 20px;
-        box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.6);
         z-index: 1000;
       `;
     } else {
@@ -174,11 +174,11 @@ export class GDVisualization {
         width: 360px;
         height: calc(100vh - 100px);
         overflow-y: auto;
-        background: white;
-        border: 2px solid #333;
+        background: var(--panel-bg);
+        border: 2px solid var(--panel-border);
         border-radius: 8px;
         padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.6);
         z-index: 1000;
       `;
     }
@@ -222,8 +222,8 @@ export class GDVisualization {
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      background: #4CAF50;
-      color: white;
+      background: var(--btn-back);
+      color: var(--btn-text);
       border: none;
       border-radius: 4px;
     `;
@@ -237,8 +237,8 @@ export class GDVisualization {
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      background: #2196F3;
-      color: white;
+      background: var(--btn-forward);
+      color: var(--btn-text);
       border: none;
       border-radius: 4px;
     `;
@@ -276,8 +276,8 @@ export class GDVisualization {
         padding: 10px 20px;
         font-size: 16px;
         cursor: ${backDisabled ? 'not-allowed' : 'pointer'};
-        background: #4CAF50;
-        color: white;
+        background: var(--btn-back);
+        color: var(--btn-text);
         border: none;
         border-radius: 4px;
         min-width: 120px;
@@ -288,8 +288,8 @@ export class GDVisualization {
         padding: 10px 20px;
         font-size: 16px;
         cursor: ${forwardDisabled ? 'not-allowed' : 'pointer'};
-        background: #2196F3;
-        color: white;
+        background: var(--btn-forward);
+        color: var(--btn-text);
         border: none;
         border-radius: 4px;
         min-width: 120px;
@@ -311,8 +311,8 @@ export class GDVisualization {
         padding: 10px 20px;
         font-size: 16px;
         cursor: ${backDisabled ? 'not-allowed' : 'pointer'};
-        background: #4CAF50;
-        color: white;
+        background: var(--btn-back);
+        color: var(--btn-text);
         border: none;
         border-radius: 4px;
         opacity: ${backDisabled ? '0.5' : '1'};
@@ -321,8 +321,8 @@ export class GDVisualization {
         padding: 10px 20px;
         font-size: 16px;
         cursor: ${forwardDisabled ? 'not-allowed' : 'pointer'};
-        background: #2196F3;
-        color: white;
+        background: var(--btn-forward);
+        color: var(--btn-text);
         border: none;
         border-radius: 4px;
         opacity: ${forwardDisabled ? '0.5' : '1'};
@@ -512,13 +512,13 @@ export class GDVisualization {
     
     this.detailsPanel.innerHTML = `
       <h2 style="margin-top: 0; margin-bottom: 10px;">${level.name}</h2>
-      ${level.author ? `<p style="color: #666; margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
-      <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+      ${level.author ? `<p style="color: var(--muted); margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
+      <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--text);">
         Difficulty: ${difficultyStr}
       </p>
       <div style="margin-bottom: 15px;">
-        ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: #2196F3; text-decoration: none;">📺 YouTube</a>` : ''}
-        ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: #2196F3; text-decoration: none;">🎮 GDBrowser</a>` : ''}
+        ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: var(--accent); text-decoration: none;">📺 YouTube</a>` : ''}
+        ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: var(--accent); text-decoration: none;">🎮 GDBrowser</a>` : ''}
       </div>
       ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;" class="commentary-content">${level.commentary}</div>` : ''}
     `;
@@ -590,7 +590,7 @@ export class GDVisualization {
           // Highlight this label
           d3.select(event.currentTarget as SVGTextElement)
             .style('font-weight', 'bold')
-            .style('fill', '#2196F3');
+            .style('fill', 'var(--accent)');
           // Also highlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
@@ -604,7 +604,7 @@ export class GDVisualization {
           // Unhighlight this label
           d3.select(event.currentTarget as SVGTextElement)
             .style('font-weight', 'normal')
-            .style('fill', '#333');
+            .style('fill', 'var(--text)');
           // Also unhighlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
@@ -683,12 +683,12 @@ export class GDVisualization {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'bold')
-                .style('fill', '#2196F3');
+                .style('fill', 'var(--accent)');
             }
           });
         // Highlight click area
         d3.select(event.currentTarget as SVGRectElement)
-          .style('fill', 'rgba(33, 150, 243, 0.1)');
+          .style('fill', 'var(--hover-bg)');
       })
       .on('mouseout', (event, d) => {
         // Unhighlight x-axis label
@@ -698,7 +698,7 @@ export class GDVisualization {
             if (d3.select(this).text() === levelName) {
               d3.select(this)
                 .style('font-weight', 'normal')
-                .style('fill', '#333');
+                .style('fill', 'var(--text)');
             }
           });
         // Unhighlight click area
@@ -730,7 +730,7 @@ export class GDVisualization {
       .attr('width', this.xScale.bandwidth())
       .attr('y', this.height)
       .attr('height', 0)
-      .style('fill', '#2196F3')
+      .style('fill', 'var(--bar)')
       .style('pointer-events', 'none'); // Let click areas handle interactions
     
     // Update existing and new bars
