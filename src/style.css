@@ -75,6 +75,17 @@ svg {
   fill: var(--muted);
 }
 
+/* Axis label highlight state — toggled via class to avoid inline style persistence */
+.x-axis text.highlight {
+  fill: var(--accent) !important;
+  font-weight: bold;
+}
+
+.x-axis text.normal {
+  fill: var(--muted);
+  font-weight: normal;
+}
+
 .x-axis path,
 .y-axis path,
 .x-axis line,

@@ -574,6 +574,7 @@ export class GDVisualization {
       .attr('dx', '-.5em')
       .attr('dy', '.35em')
       .attr('transform', 'rotate(-90)')
+      .classed('normal', true)
       .style('cursor', 'pointer')
       .on('click', (event, d) => {
         const level = visibleData.find(l => l.name === d);
@@ -585,24 +586,20 @@ export class GDVisualization {
       .on('mouseover', (event, d) => {
         const level = visibleData.find(l => l.name === d);
         if (level) {
-          // Highlight this label
-          d3.select(event.currentTarget as SVGTextElement)
-            .style('font-weight', 'bold')
-            .style('fill', 'var(--accent)');
+          // Toggle highlight class instead of inline styles
+          d3.select(event.currentTarget as SVGTextElement).classed('highlight', true).classed('normal', false);
           // Also highlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
             .filter((clickData: LevelData) => clickData.name === levelName)
-            .style('fill', 'rgba(33, 150, 243, 0.1)');
+            .style('fill', 'var(--hover-bg)');
         }
       })
       .on('mouseout', (event, d) => {
         const level = visibleData.find(l => l.name === d);
         if (level) {
-          // Unhighlight this label
-          d3.select(event.currentTarget as SVGTextElement)
-            .style('font-weight', 'normal')
-            .style('fill', 'var(--text)');
+          // Remove highlight class
+          d3.select(event.currentTarget as SVGTextElement).classed('highlight', false).classed('normal', true);
           // Also unhighlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
@@ -674,14 +671,12 @@ export class GDVisualization {
         this.updateDetailsPanel(d);
       })
       .on('mouseover', (event, d) => {
-        // Highlight x-axis label
+        // Highlight corresponding x-axis label by toggling class
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
           .each(function () {
             if (d3.select(this).text() === levelName) {
-              d3.select(this)
-                .style('font-weight', 'bold')
-                .style('fill', 'var(--accent)');
+              d3.select(this).classed('highlight', true).classed('normal', false);
             }
           });
         // Highlight click area
@@ -689,17 +684,13 @@ export class GDVisualization {
           .style('fill', 'var(--hover-bg)');
       })
       .on('mouseout', (event, d) => {
-        // Unhighlight x-axis label
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
           .each(function () {
             if (d3.select(this).text() === levelName) {
-              d3.select(this)
-                .style('font-weight', 'normal')
-                .style('fill', 'var(--text)');
+              d3.select(this).classed('highlight', false).classed('normal', true);
             }
           });
-        // Unhighlight click area
         d3.select(event.currentTarget as SVGRectElement)
           .style('fill', 'transparent');
       });
