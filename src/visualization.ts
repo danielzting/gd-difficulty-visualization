@@ -9,23 +9,23 @@ interface VisualizationConfig {
 export class GDVisualization {
   private data: LevelData[];
   private container: HTMLElement;
-  private svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-  private chartGroup: d3.Selection<SVGGElement, unknown, null, undefined>;
-  private xScale: d3.ScaleBand<string>;
-  private yScale: d3.ScaleLinear<number, number>;
+  private svg: any;
+  private chartGroup: any;
+  private xScale: any;
+  private yScale: any;
   private visibleLevels: number = 1;
   private selectedLevelIndex: number = 0;
   private margin = { top: 20, right: 400, bottom: 145, left: 60 };
   private isMobile: boolean = false;
-  private width: number;
-  private height: number;
-  private detailsPanel: HTMLElement;
-  private forwardButton: HTMLElement;
-  private backButton: HTMLElement;
+  private width!: number;
+  private height!: number;
+  private detailsPanel!: HTMLDivElement;
+  private forwardButton!: HTMLButtonElement;
+  private backButton!: HTMLButtonElement;
   private isResizing: boolean = false;
   private isSelecting: boolean = false;
   private longPressTimer: number | null = null;
-  private selectionLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null;
+  private selectionLine: any | null = null;
 
   constructor(config: VisualizationConfig) {
     this.data = config.data;
@@ -69,11 +69,11 @@ export class GDVisualization {
 
     // Initialize scales
     this.xScale = d3.scaleBand()
-      .domain(this.data.map(d => d.name))
+      .domain(this.data.map((d: LevelData) => d.name))
       .range([0, this.width])
       .padding(0.2);
 
-    const maxDifficulty = d3.max(this.data, d => d.difficulty) || 1;
+    const maxDifficulty = d3.max(this.data, (d: LevelData) => d.difficulty) || 1;
     this.yScale = d3.scaleLinear()
       .domain([0, maxDifficulty])
       .range([this.height, 0]);
@@ -380,7 +380,7 @@ export class GDVisualization {
     const bw = this.xScale.bandwidth();
     let nearest = 0;
     let minDist = Infinity;
-    visibleData.forEach((d, i) => {
+    visibleData.forEach((d: LevelData) => {
       const start = (this.xScale(d.name) || 0) + bw / 2;
       const dist = Math.abs(start - x);
       if (dist < minDist) {
@@ -415,7 +415,7 @@ export class GDVisualization {
         this.updateDetailsPanel(this.data[this.selectedLevelIndex]);
         // Highlight the related click area visually
         this.chartGroup.selectAll('.click-area')
-          .style('fill', (d: LevelData, i: number) => this.data.indexOf(d) === idx ? 'rgba(255,87,34,0.12)' : 'transparent');
+          .style('fill', (d: LevelData) => this.data.indexOf(d) === idx ? 'rgba(255,87,34,0.12)' : 'transparent');
       }, 180);
     };
 
@@ -475,6 +475,7 @@ export class GDVisualization {
     }, { passive: true });
 
     svgEl.addEventListener('touchend', (ev: TouchEvent) => {
+      void ev;
       activeTouchId = null;
       endPress();
     });
@@ -524,7 +525,7 @@ export class GDVisualization {
 
   private update(): void {
     const visibleData = this.data.slice(0, this.visibleLevels);
-    const maxDifficulty = d3.max(visibleData, d => d.difficulty) || 1;
+    const maxDifficulty = d3.max(visibleData, (d: LevelData) => d.difficulty) || 1;
 
     // Update y-scale to fit visible data
     this.yScale.domain([0, maxDifficulty]);
@@ -535,12 +536,12 @@ export class GDVisualization {
     // Update x-axis (no tick marks)
     const xAxis = d3.axisBottom(this.xScale)
       .tickSize(0)
-      .tickFormat(d => {
-        const level = visibleData.find(l => l.name === d);
-        return level ? level.name : d;
+      .tickFormat((d: any) => {
+        const level = visibleData.find((l: LevelData) => l.name === d);
+        return level ? level.name : (d as string);
       });
 
-    const xAxisGroup = this.chartGroup.selectAll<SVGGElement, unknown>('.x-axis')
+    const xAxisGroup = this.chartGroup.selectAll('.x-axis')
       .data([null]);
 
     const xAxisGroupEnter = xAxisGroup.enter()
@@ -548,7 +549,7 @@ export class GDVisualization {
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${this.height})`);
 
-    const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
+    const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup);
 
     // Update transform to position x-axis at bottom (important for vertical resizing)
     xAxisGroupMerged
@@ -577,34 +578,33 @@ export class GDVisualization {
       .attr('transform', 'rotate(-90)')
       .classed('normal', true)
       .style('cursor', 'pointer')
-      .on('click', (event, d) => {
-        const level = visibleData.find(l => l.name === d);
+      .on('click', (event: any, d: any) => {
+        void event;
+        const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
           this.selectedLevelIndex = this.data.indexOf(level);
           this.updateDetailsPanel(level);
         }
       })
-      .on('mouseover', (event, d) => {
-        const level = visibleData.find(l => l.name === d);
+      .on('mouseover', (event: any, d: any) => {
+        void event;
+        const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
-          // Toggle highlight class instead of inline styles
           d3.select(event.currentTarget as SVGTextElement).classed('highlight', true).classed('normal', false);
-          // Also highlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
-            .filter((clickData: LevelData) => clickData.name === levelName)
+            .filter((clickData: any) => clickData.name === levelName)
             .style('fill', 'var(--hover-bg)');
         }
       })
-      .on('mouseout', (event, d) => {
-        const level = visibleData.find(l => l.name === d);
+      .on('mouseout', (event: any, d: any) => {
+        void event;
+        const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
-          // Remove highlight class
           d3.select(event.currentTarget as SVGTextElement).classed('highlight', false).classed('normal', true);
-          // Also unhighlight the corresponding click area
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
-            .filter((clickData: LevelData) => clickData.name === levelName)
+            .filter((clickData: any) => clickData.name === levelName)
             .style('fill', 'transparent');
         }
       });
@@ -614,14 +614,14 @@ export class GDVisualization {
       .tickSize(0)
       .tickFormat('');
 
-    const yAxisGroup = this.chartGroup.selectAll<SVGGElement, unknown>('.y-axis')
+    const yAxisGroup = this.chartGroup.selectAll('.y-axis')
       .data([null]);
 
     const yAxisGroupEnter = yAxisGroup.enter()
       .append('g')
       .attr('class', 'y-axis');
 
-    const yAxisGroupMerged = yAxisGroupEnter.merge(yAxisGroup as d3.Selection<SVGGElement, unknown, null, undefined>);
+    const yAxisGroupMerged = yAxisGroupEnter.merge(yAxisGroup);
 
     if (this.isResizing) {
       yAxisGroupMerged.call(yAxis);
@@ -634,8 +634,8 @@ export class GDVisualization {
     }
 
     // Update bars
-    const bars = this.chartGroup.selectAll<SVGRectElement, LevelData>('.bar')
-      .data(visibleData, d => d.name);
+    const bars = this.chartGroup.selectAll('.bar')
+      .data(visibleData, (d: any) => d.name);
 
     // Remove bars that are no longer visible
     const barsExit = bars.exit();
@@ -655,41 +655,44 @@ export class GDVisualization {
     }
 
     // Add invisible clickable rectangles that extend to the top
-    const clickAreas = this.chartGroup.selectAll<SVGRectElement, LevelData>('.click-area')
-      .data(visibleData, d => d.name);
+    const clickAreas = this.chartGroup.selectAll('.click-area')
+      .data(visibleData, (d: any) => d.name);
 
     clickAreas.exit().remove();
 
     const clickAreasEnter = clickAreas.enter()
       .append('rect')
       .attr('class', 'click-area')
-      .attr('x', d => this.xScale(d.name) || 0)
+      .attr('x', (d: any) => this.xScale(d.name) || 0)
       .attr('width', this.xScale.bandwidth())
       .attr('y', 0)
       .attr('height', this.height)
       .style('fill', 'transparent')
       .style('cursor', 'pointer')
-      .on('click', (event, d) => {
+      .on('click', (event: any, d: any) => {
+        void event;
         this.selectedLevelIndex = this.data.indexOf(d);
         this.updateDetailsPanel(d);
       })
-      .on('mouseover', (event, d) => {
+      .on('mouseover', (event: any, d: any) => {
+        void event;
         // Highlight corresponding x-axis label by toggling class
         const levelName = d.name;
-        this.chartGroup.selectAll('.x-axis text')
-          .each(function () {
-            if (d3.select(this).text() === levelName) {
-              d3.select(this).classed('highlight', true).classed('normal', false);
-            }
-          });
+            this.chartGroup.selectAll('.x-axis text')
+              .each(function(this: Element) {
+                if (d3.select(this).text() === levelName) {
+                  d3.select(this).classed('highlight', true).classed('normal', false);
+                }
+              });
         // Highlight click area
         d3.select(event.currentTarget as SVGRectElement)
           .style('fill', 'var(--hover-bg)');
       })
-      .on('mouseout', (event, d) => {
+      .on('mouseout', (event: any, d: any) => {
+        void event;
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
-          .each(function () {
+          .each(function(this: Element) {
             if (d3.select(this).text() === levelName) {
               d3.select(this).classed('highlight', false).classed('normal', true);
             }
@@ -698,11 +701,11 @@ export class GDVisualization {
           .style('fill', 'transparent');
       });
 
-    const clickAreasMerged = clickAreasEnter.merge(clickAreas as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
+    const clickAreasMerged = clickAreasEnter.merge(clickAreas);
 
     if (this.isResizing) {
       clickAreasMerged
-        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('x', (d: any) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
     } else {
@@ -710,7 +713,7 @@ export class GDVisualization {
         .transition()
         .duration(3000)
         .ease(d3.easeCubicOut)
-        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('x', (d: any) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
     }
@@ -719,7 +722,7 @@ export class GDVisualization {
     const barsEnter = bars.enter()
       .append('rect')
       .attr('class', 'bar')
-      .attr('x', d => this.xScale(d.name) || 0)
+      .attr('x', (d: any) => this.xScale(d.name) || 0)
       .attr('width', this.xScale.bandwidth())
       .attr('y', this.height)
       .attr('height', 0)
@@ -727,23 +730,23 @@ export class GDVisualization {
       .style('pointer-events', 'none'); // Let click areas handle interactions
 
     // Update existing and new bars
-    const barsMerged = barsEnter.merge(bars as d3.Selection<SVGRectElement, LevelData, SVGGElement, unknown>);
+    const barsMerged = barsEnter.merge(bars);
 
     if (this.isResizing) {
       barsMerged
-        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('x', (d: any) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
-        .attr('y', d => this.yScale(d.difficulty))
-        .attr('height', d => this.height - this.yScale(d.difficulty));
+        .attr('y', (d: any) => this.yScale(d.difficulty))
+        .attr('height', (d: any) => this.height - this.yScale(d.difficulty));
     } else {
       barsMerged
         .transition()
         .duration(3000)
         .ease(d3.easeCubicOut)
-        .attr('x', d => this.xScale(d.name) || 0)
+        .attr('x', (d: any) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
-        .attr('y', d => this.yScale(d.difficulty))
-        .attr('height', d => this.height - this.yScale(d.difficulty));
+        .attr('y', (d: any) => this.yScale(d.difficulty))
+        .attr('height', (d: any) => this.height - this.yScale(d.difficulty));
     }
 
     // Update details panel with selected level
