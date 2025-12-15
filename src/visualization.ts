@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import type { LevelData } from './dataParser';
+import type { ScaleBand, ScaleLinear } from 'd3';
 
 interface VisualizationConfig {
   container: HTMLElement;
@@ -11,8 +12,8 @@ export class GDVisualization {
   private container: HTMLElement;
   private svg: any;
   private chartGroup: any;
-  private xScale: any;
-  private yScale: any;
+  private xScale: ScaleBand<string>;
+  private yScale: ScaleLinear<number, number>;
   private visibleLevels: number = 1;
   private selectedLevelIndex: number = 0;
   private margin = { top: 20, right: 400, bottom: 145, left: 60 };
@@ -50,7 +51,7 @@ export class GDVisualization {
       .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.chartGroup = this.svg.append('g')
-      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`) as any;
 
     // Add a selection line (hidden by default)
     this.selectionLine = this.chartGroup.append('line')
@@ -68,7 +69,7 @@ export class GDVisualization {
     this.setupTouchHandlers();
 
     // Initialize scales
-    this.xScale = d3.scaleBand()
+    this.xScale = d3.scaleBand<string>()
       .domain(this.data.map((d: LevelData) => d.name))
       .range([0, this.width])
       .padding(0.2);
@@ -537,8 +538,9 @@ export class GDVisualization {
     const xAxis = d3.axisBottom(this.xScale)
       .tickSize(0)
       .tickFormat((d: any) => {
-        const level = visibleData.find((l: LevelData) => l.name === d);
-        return level ? level.name : (d as string);
+        const key = String(d);
+        const level = visibleData.find((l: LevelData) => l.name === key);
+        return level ? level.name : key;
       });
 
     const xAxisGroup = this.chartGroup.selectAll('.x-axis')
@@ -549,7 +551,7 @@ export class GDVisualization {
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${this.height})`);
 
-    const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup);
+    const xAxisGroupMerged = xAxisGroupEnter.merge(xAxisGroup as any);
 
     // Update transform to position x-axis at bottom (important for vertical resizing)
     xAxisGroupMerged
@@ -578,7 +580,7 @@ export class GDVisualization {
       .attr('transform', 'rotate(-90)')
       .classed('normal', true)
       .style('cursor', 'pointer')
-      .on('click', (event: any, d: any) => {
+      .on('click', (event: MouseEvent, d: string) => {
         void event;
         const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
@@ -586,25 +588,25 @@ export class GDVisualization {
           this.updateDetailsPanel(level);
         }
       })
-      .on('mouseover', (event: any, d: any) => {
+      .on('mouseover', (event: MouseEvent, d: string) => {
         void event;
         const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
           d3.select(event.currentTarget as SVGTextElement).classed('highlight', true).classed('normal', false);
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
-            .filter((clickData: any) => clickData.name === levelName)
+            .filter((clickData: LevelData) => clickData.name === levelName)
             .style('fill', 'var(--hover-bg)');
         }
       })
-      .on('mouseout', (event: any, d: any) => {
+      .on('mouseout', (event: MouseEvent, d: string) => {
         void event;
         const level = visibleData.find((l: LevelData) => l.name === d);
         if (level) {
           d3.select(event.currentTarget as SVGTextElement).classed('highlight', false).classed('normal', true);
           const levelName = level.name;
           this.chartGroup.selectAll('.click-area')
-            .filter((clickData: any) => clickData.name === levelName)
+            .filter((clickData: LevelData) => clickData.name === levelName)
             .style('fill', 'transparent');
         }
       });
@@ -612,14 +614,15 @@ export class GDVisualization {
     // Update y-axis (no ticks or labels)
     const yAxis = d3.axisLeft(this.yScale)
       .tickSize(0)
-      .tickFormat('');
+      .tickFormat(() => '');
 
     const yAxisGroup = this.chartGroup.selectAll('.y-axis')
       .data([null]);
 
     const yAxisGroupEnter = yAxisGroup.enter()
       .append('g')
-      .attr('class', 'y-axis');
+      .attr('class', 'y-axis')
+      .attr('transform', `translate(0,0)`);
 
     const yAxisGroupMerged = yAxisGroupEnter.merge(yAxisGroup);
 
@@ -635,7 +638,7 @@ export class GDVisualization {
 
     // Update bars
     const bars = this.chartGroup.selectAll('.bar')
-      .data(visibleData, (d: any) => d.name);
+      .data(visibleData, (d: LevelData) => d.name);
 
     // Remove bars that are no longer visible
     const barsExit = bars.exit();
@@ -656,43 +659,43 @@ export class GDVisualization {
 
     // Add invisible clickable rectangles that extend to the top
     const clickAreas = this.chartGroup.selectAll('.click-area')
-      .data(visibleData, (d: any) => d.name);
+      .data(visibleData, (d: LevelData) => d.name);
 
     clickAreas.exit().remove();
 
-    const clickAreasEnter = clickAreas.enter()
-      .append('rect')
+    const clickAreasEnter = (clickAreas.enter()
+      .append('rect') as any)
       .attr('class', 'click-area')
-      .attr('x', (d: any) => this.xScale(d.name) || 0)
+      .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
       .attr('width', this.xScale.bandwidth())
       .attr('y', 0)
       .attr('height', this.height)
       .style('fill', 'transparent')
       .style('cursor', 'pointer')
-      .on('click', (event: any, d: any) => {
+      .on('click', (event: MouseEvent, d: LevelData) => {
         void event;
         this.selectedLevelIndex = this.data.indexOf(d);
         this.updateDetailsPanel(d);
       })
-      .on('mouseover', (event: any, d: any) => {
+      .on('mouseover', (event: MouseEvent, d: LevelData) => {
         void event;
         // Highlight corresponding x-axis label by toggling class
         const levelName = d.name;
-            this.chartGroup.selectAll('.x-axis text')
-              .each(function(this: Element) {
-                if (d3.select(this).text() === levelName) {
-                  d3.select(this).classed('highlight', true).classed('normal', false);
-                }
-              });
+        this.chartGroup.selectAll('.x-axis text')
+          .each(function (this: Element) {
+            if (d3.select(this).text() === levelName) {
+              d3.select(this).classed('highlight', true).classed('normal', false);
+            }
+          });
         // Highlight click area
         d3.select(event.currentTarget as SVGRectElement)
           .style('fill', 'var(--hover-bg)');
       })
-      .on('mouseout', (event: any, d: any) => {
+      .on('mouseout', (event: MouseEvent, d: LevelData) => {
         void event;
         const levelName = d.name;
         this.chartGroup.selectAll('.x-axis text')
-          .each(function(this: Element) {
+          .each(function (this: Element) {
             if (d3.select(this).text() === levelName) {
               d3.select(this).classed('highlight', false).classed('normal', true);
             }
@@ -701,11 +704,11 @@ export class GDVisualization {
           .style('fill', 'transparent');
       });
 
-    const clickAreasMerged = clickAreasEnter.merge(clickAreas);
+    const clickAreasMerged = clickAreasEnter.merge(clickAreas as any);
 
     if (this.isResizing) {
       clickAreasMerged
-        .attr('x', (d: any) => this.xScale(d.name) || 0)
+        .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
     } else {
@@ -713,16 +716,16 @@ export class GDVisualization {
         .transition()
         .duration(3000)
         .ease(d3.easeCubicOut)
-        .attr('x', (d: any) => this.xScale(d.name) || 0)
+        .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
     }
 
     // Add new bars
-    const barsEnter = bars.enter()
-      .append('rect')
+    const barsEnter = (bars.enter()
+      .append('rect') as any)
       .attr('class', 'bar')
-      .attr('x', (d: any) => this.xScale(d.name) || 0)
+      .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
       .attr('width', this.xScale.bandwidth())
       .attr('y', this.height)
       .attr('height', 0)
@@ -730,23 +733,23 @@ export class GDVisualization {
       .style('pointer-events', 'none'); // Let click areas handle interactions
 
     // Update existing and new bars
-    const barsMerged = barsEnter.merge(bars);
+    const barsMerged = barsEnter.merge(bars as any);
 
     if (this.isResizing) {
       barsMerged
-        .attr('x', (d: any) => this.xScale(d.name) || 0)
+        .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
-        .attr('y', (d: any) => this.yScale(d.difficulty))
-        .attr('height', (d: any) => this.height - this.yScale(d.difficulty));
+        .attr('y', (d: LevelData) => this.yScale(d.difficulty))
+        .attr('height', (d: LevelData) => this.height - this.yScale(d.difficulty));
     } else {
       barsMerged
         .transition()
         .duration(3000)
         .ease(d3.easeCubicOut)
-        .attr('x', (d: any) => this.xScale(d.name) || 0)
+        .attr('x', (d: LevelData) => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
-        .attr('y', (d: any) => this.yScale(d.difficulty))
-        .attr('height', (d: any) => this.height - this.yScale(d.difficulty));
+        .attr('y', (d: LevelData) => this.yScale(d.difficulty))
+        .attr('height', (d: LevelData) => this.height - this.yScale(d.difficulty));
     }
 
     // Update details panel with selected level
