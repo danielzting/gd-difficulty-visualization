@@ -560,7 +560,8 @@ export class GDVisualization {
     } else {
       xAxisGroupMerged
         .transition()
-        .duration(500)
+        .duration(3000)
+        .ease(d3.easeCubicOut)
         .call(xAxis);
     }
 
@@ -627,7 +628,8 @@ export class GDVisualization {
     } else {
       yAxisGroupMerged
         .transition()
-        .duration(500)
+        .duration(3000)
+        .ease(d3.easeCubicOut)
         .call(yAxis);
     }
 
@@ -645,7 +647,8 @@ export class GDVisualization {
     } else {
       barsExit
         .transition()
-        .duration(500)
+        .duration(3000)
+        .ease(d3.easeCubicOut)
         .attr('height', 0)
         .attr('y', this.height)
         .remove();
@@ -705,7 +708,8 @@ export class GDVisualization {
     } else {
       clickAreasMerged
         .transition()
-        .duration(500)
+        .duration(3000)
+        .ease(d3.easeCubicOut)
         .attr('x', d => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('height', this.height);
@@ -734,7 +738,8 @@ export class GDVisualization {
     } else {
       barsMerged
         .transition()
-        .duration(500)
+        .duration(3000)
+        .ease(d3.easeCubicOut)
         .attr('x', d => this.xScale(d.name) || 0)
         .attr('width', this.xScale.bandwidth())
         .attr('y', d => this.yScale(d.difficulty))
