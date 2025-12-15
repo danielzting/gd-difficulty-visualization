@@ -512,14 +512,12 @@ export class GDVisualization {
 
     this.detailsPanel.innerHTML = `
       <h2 style="margin-top: 0; margin-bottom: 10px;">${level.name}</h2>
-      ${level.author ? `<p style="color: var(--muted); margin-bottom: 15px;"><strong>Author:</strong> ${level.author}</p>` : ''}
+      ${level.publisher ? `<p style="color: var(--muted); margin-bottom: 15px;"><strong>Publisher:</strong> ${level.publisher}</p>` : ''}
       <p style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--text);">
         Difficulty: ${difficultyStr}
+        ${level.gdBrowserUrl ? ` | <a href="${level.gdBrowserUrl}" target="_blank" style="color: var(--accent); text-decoration: none;">GDBrowser</a>` : ''}
       </p>
-      <div style="margin-bottom: 15px;">
-        ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; margin-right: 10px; color: var(--accent); text-decoration: none;">📺 YouTube</a>` : ''}
-        ${level.gdBrowserUrl ? `<a href="${level.gdBrowserUrl}" target="_blank" style="display: inline-block; color: var(--accent); text-decoration: none;">🎮 GDBrowser</a>` : ''}
-      </div>
+      <iframe src="https://www.youtube-nocookie.com/embed/${level.youtubeUrl?.split('=')[1]}" title="YouTube" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       ${level.commentary ? `<div style="margin-top: 15px; line-height: 1.6;" class="commentary-content">${level.commentary}</div>` : ''}
     `;
   }

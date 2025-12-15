@@ -2,7 +2,7 @@ export const BLOG_POST_URL = 'http://localhost:4321/blog/why-geometry-dash-is-th
 
 export interface LevelData {
   name: string;
-  author: string;
+  publisher: string;
   difficulty: number;
   youtubeUrl: string | null;
   gdBrowserUrl: string | null;
@@ -24,12 +24,12 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
 
   for (let i = 0; i < h3Elements.length; i++) {
     const h3 = h3Elements[i];
-    const levelNameAndAuthor = h3.textContent?.trim() || '';
+    const levelNameAndPublisher = h3.textContent?.trim() || '';
 
-    // Parse name and author from h3 (format may vary, assuming "Level Name by Author" or similar)
-    const nameAuthorMatch = levelNameAndAuthor.match(/^(.+?)(?:\s+by\s+|\s+-\s+)(.+)$/i);
-    const name = nameAuthorMatch ? nameAuthorMatch[1].trim() : levelNameAndAuthor;
-    const author = nameAuthorMatch ? nameAuthorMatch[2].trim() : '';
+    // Parse name and publisher from h3 (format may vary, assuming "Level Name by Publisher" or similar)
+    const namePublisherMatch = levelNameAndPublisher.match(/^(.+?)(?:\s+by\s+|\s+-\s+)(.+)$/i);
+    const name = namePublisherMatch ? namePublisherMatch[1].trim() : levelNameAndPublisher;
+    const publisher = namePublisherMatch ? namePublisherMatch[2].trim() : '';
 
     // Find the next h3 to know where to stop (for finding next level)
     const nextH3 = i < h3Elements.length - 1 ? h3Elements[i + 1] : null;
@@ -166,7 +166,7 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
 
     levels.push({
       name,
-      author,
+      publisher,
       difficulty,
       youtubeUrl,
       gdBrowserUrl,
