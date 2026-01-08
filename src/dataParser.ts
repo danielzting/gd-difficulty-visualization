@@ -1,4 +1,4 @@
-export const BLOG_POST_URL = 'http://localhost:4321/blog/why-geometry-dash-is-the-worlds-hardest-game';
+export const BLOG_POST_URL = 'https://danielzting.github.io/blog/the-inhuman-skill-ceiling-of-geometry-dash/';
 
 export interface LevelData {
   name: string;
