@@ -27,6 +27,10 @@ body {
   color: var(--text);
 }
 
+button {
+  touch-action: manipulation;
+}
+
 :root {
   /* Dark theme variables */
   --panel-bg: #0b1220;

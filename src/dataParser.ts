@@ -161,6 +161,67 @@ export async function fetchAndParseLevelData(): Promise<LevelData[]> {
       }
     }
 
+    // FOOTNOTES: collect footnotes from the blog post (if any)
+    const footnotesSection = doc.querySelector('section[data-footnotes], .footnotes');
+    const footnoteMap: Record<string, string> = {};
+    if (footnotesSection) {
+      const items = footnotesSection.querySelectorAll('ol > li[id]');
+      items.forEach(li => {
+        const id = li.getAttribute('id') || '';
+        if (!id) return;
+        // Clone and remove back-reference links from the footnote content
+        const clone = li.cloneNode(true) as Element;
+        // Remove backrefs (links pointing back to the text) and any footnote-backref markers
+        const backrefs = clone.querySelectorAll('a[data-footnote-backref], a.data-footnote-backref, a[href^="#user-content-fnref"], a[href^="#fnref"]');
+        backrefs.forEach(a => a.remove());
+        // Also remove any trailing whitespace-only nodes
+        footnoteMap[id] = clone.innerHTML.trim();
+      });
+    }
+
+    // Find footnote references inside the commentary, replace superscript links with plain text,
+    // and collect referenced footnote ids to append the footnote content.
+    const referencedFootnoteIds: string[] = [];
+    commentaryElements.forEach(el => {
+      const links = el.querySelectorAll('a[href^="#"]');
+      links.forEach(a => {
+        const href = a.getAttribute('href') || '';
+        if (!href.startsWith('#')) return;
+        const refId = href.slice(1);
+        // If this is a footnote reference we know about, replace the anchor with its text (remove link)
+        if (refId && footnoteMap[refId]) {
+          const text = a.textContent || '';
+          const parent = a.parentNode;
+          if (parent) {
+            parent.replaceChild(doc.createTextNode(text), a);
+          }
+          if (!referencedFootnoteIds.includes(refId)) referencedFootnoteIds.push(refId);
+        }
+      });
+    });
+
+    if (referencedFootnoteIds.length > 0) {
+      const footnotesWrapper = doc.createElement('div');
+      footnotesWrapper.className = 'commentary-footnotes';
+      // Build an ordered list of the referenced footnotes using their original content
+      const ol = doc.createElement('ol');
+      referencedFootnoteIds.forEach(id => {
+        const li = doc.createElement('li');
+        // Preserve original numbering by extracting trailing digits from the footnote id when possible
+        const match = id.match(/(\d+)$/);
+        if (match) {
+          // Set the list item's value so numbering matches original (HTML supports li value)
+          const num = parseInt(match[1], 10);
+          try { li.setAttribute('value', String(num)); } catch (e) { /* ignore */ }
+        }
+        li.innerHTML = footnoteMap[id] || '';
+        ol.appendChild(li);
+      });
+      // Append only the list (no 'Footnotes' heading)
+      footnotesWrapper.appendChild(ol);
+      commentaryElements.push(footnotesWrapper);
+    }
+
     // Convert commentary elements to HTML string
     const commentaryHTML = commentaryElements.map(el => el.outerHTML).join('');
 
